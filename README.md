@@ -18,11 +18,11 @@ Khóa riêng(d): Được giữ bí mật và chỉ người sở hữu mới c�
 
 N = p*q (p, q là hai số nguyên tố) 
 
-Sau đó tính: phi(N) = (p - 1)*(q - 1) và chọn một số e (1 < e < phi(N)) sao cho e và phi(N) là hai số nguyên tố cùng nhau
+Sau đó tính: phi(N) = (p - 1)*(q - 1) và chọn một số e ( 1 < e < $\phi(N)$ ) sao cho e và $\phi(N)$ là hai số nguyên tố cùng nhau
 
 Và cuối cùng là tạo ra khoá riêng d 
 
-Với: d = $e^{-1} \pmod{phi(N)}$ hay là $d \cdot e \equiv 1 \pmod{phi(N)}$
+Với: d = $e^{-1} \pmod{phi(N)}$ hay là $d \cdot e \equiv 1 \pmod{\phi(N)}$
 
 
 **Mã hóa**: Người gửi sử dụng khóa công khai của người nhận để mã hóa thông điệp.
@@ -60,6 +60,106 @@ Trong trường hợp này, sẽ chỉ có một module N được sử dụng, 
 
 Tuy nhiên đây là một cách tạo khoá có nhiều sơ hở, vì giả sử có Alice và Bob sở hữu 2 cặp $(e_a, d_a)$ và $(e_b, d_b)$
 
-Ta hoàn toàn có thể mã hoá được $(d_a) 
+Ta hoàn toàn có thể mã hoá được $(d_a)$ khi ta có thể phân tích N thành các thừa số nguyên tố, dùng công thức phi Euler và thuật toán Euclid mở rộng
+
+### $e_a \cdot d_a + e_b \cdot d_b = 1 \pmod{\phi(N)}$
+
+Một khi tìm được $d_a$ Bob hoàn toàn có thể giải mã các thông điệp được gửi cho Alice...
+
+**BLINDING**
+
+Marvin muốn Bob ký vào một $message(M)$. Nhưng Bob từ chối, vây nên Marvin cố gắng tìm ra một số r sao cho $gcd(N, r) = 1$ 
+
+Khi này $message(M)$ được mã hoá thành $message(M')$ với $M' \equiv M*r^{e} \pmod{N}$
+
+Bob ký vào $message(M')$ và khi này có được chữ ký $S' = M'^{d} \pmod{N}$ của Bob bằng cách lấy $S = \frac{S'}{r} \pmod{N}$
+
+### $\Rightarrow S^{e} = \frac{S'^{e}}{r^{e}} = \frac{M'^{ed}}{r^{e}} \equiv \frac{M'}{r^{e}} = M \pmod{N}$
+
+Kỹ thuật trên được Marvin sử dụng, đã giúp tìm ra được chữ ký S của Bob.
+
+### III. Low Private Exponent (Số mũ riêng d nhỏ)
+**WEINER ATTACK**
+
+Cho N = $p \cdot q$
+
+Điều kiện của bài toán:
+
+$d < \frac{1}{3} \cdot N^{\frac{1}{4}}$
+
+$q < p < 2q$
+
+$e' < N^{\frac{3}{2}}$ với $e' = e \pmod{N}$ (e' là một số không quá lớn)
+
+Với một cặp khoá công khai (N, e), ta có thể tìm ra d và phá vỡ hệ thống mã hoá
+
+**CHỨNG MINH**
+
+Phép chứng minh sử dụng tính chất liên phân số. 
+
+Ta có: $e \cdot d \equiv 1 \pmod{\phi(N)}$
+
+Tồn tại $k$ là một số thoả $e \cdot d - k \cdot \phi(N) = 1$. Suy ra:
+
+## $|\frac{e}{\phi(N)} - \frac{k}{d}| = \frac{1}{d \cdot \phi(N)}$
+
+### Từ đây, $\frac{k}{d} \approx \frac{e}{\phi(N)}$, vì $|N - \phi(N)| < 3 \cdot \sqrt(N)$ (do $p + q = n - \phi(N) + 1$ và $p + q - 1 < 3 \sqrt{N}$)  ta có $\phi(N) \approx N$, thay $\phi(N)$ bằng N, ta được:
+
+## $|\frac{e}{N} - \frac{k}{d}| = |\frac {e \cdot d - k \cdot N - k \cdot \phi(N) + k \cdot \phi(N)}{ N \cdot d}| = |\frac{1 - k \cdot (N - \phi(N)}{N \cdot d}|$
+
+Khi đó:
+
+## $\Rightarrow |\frac{e}{N} - \frac{k}{d}| <= | \frac {3k \cdot \sqrt{N}}{N \cdot d} | = \frac{3k}{ d \sqrt{N}} <= \frac{1}{d N^{\frac{1}{4}}} < \frac{1}{2d^{2}}$
+
+Từ đó, áp dụng định lý về dãy hội tụ liên phân số, ta tìm trong dãy hội tụ của khai triển liên phân số $\frac{e}{n}$ sẽ tìm được $\frac{k}{d}$. 
+
+Và vì $ed - k\phi(N) \equiv 1$ nên $gcd(k, d) = 1$ chứng tỏ phân số $\frac{k}{d}$ là một phân số tối giản, và ta có thể dễ dàng tìm được d 
+
+### Weiner đưa ra cách chống lại phương pháp tấn công trên sử dụng 2 cách:
+**Sử dụng e lớn**: Thay e bằng e' với $e' = e + k\phi(N)$ sao cho k là số nguyên đủ lớn để $e' > n^{\frac{3}{2}}$ 
+
+**Dùng định lý dư Trung Quốc(CRT)**: Chọn hai số nhỏ $d_p$ và $d_q$ lần lượt đồng dư theo module (p - 1) và (q - 1), và $d$ là một số lớn
+
+Quá trình giải mã có thể diễn ra như sau: ta tính $m_p = C^{d_p} \pmod {p}$ và $m_q = C^{d_q} \pmod {q}$, dùng CRT để tính m với m = $m_p \pmod{p}$ và $m_q \pmod{q}$
+
+Với m tìm được thì sẽ thoả $m = c^{d} \pmod{N}$ và vì vậy với d lớn thì lúc này Weiner Attack không còn hiệu quả.
+
+### IV. Low Public Exponent (Số mũ công khai e nhỏ)
+ĐỐI VỚI PHẦN NÀY, PHƯƠNG PHÁP MẠNH MẼ NHẤT ĐỂ GIẢI QUYẾT SẼ LÀ ĐỊNH LÝ COPPERSMITH TUY NHIÊN TRONG CRYPTOHACK: RSA CHALLENGE CHƯA ĐỀ CẬP ĐẾN NÊN TA SẼ TÌM HIỂU VỀ MỘT TRONG SỐ NHỮNG ỨNG DỤNG ĐẦU TIÊN CỦA NÓ.
+
+**HASTAD'S BROADCAST ATTACK**
+
+Với số mũ công khai là nhỏ và ta cần ít nhất biết được giá trị của các khoá $(N_i, e_i)$ với cùng một số mũ e, và N đôi một nguyên tố với nhau và cùng với những thông điệp M tương ứng của 1 giá trị m duy nhất:
+
+GIẢ SỬ: e = 3 do đó M = m^3 và ta phải giải hệ phương trình:
+
+### $c_1 = M^3 \pmod{n_1}$
+### $c_2 = M^3 \pmod{n_2}$
+### $c_3 = M^3 \pmod{n_3}$
+
+### CÁC BƯƠC THỰC HIỆN BÀI TOÁN ĐỊNH LÝ DƯ TRUNG QUỐC
+### Bước đầu tiên: ta lấy số dư $c_i$ của các phép toán M $\pmod{n_i}$ (VỚI $c_i$ = $M^{3} \pmod{n_i}$) 
+
+### Tiếp theo: tìm Modulus $N_i$ = $\frac{N}{n_i}$ (với N là tích của i phần tử $n_i$)
+
+### Từ đó: với $N_i$ tương ứng với $M_i$ là nghịch đảo Modulus của $N_i \pmod{n_i}$
+
+### Và ta có thể tính $M = (\sum_{i = 1}^{e} r_i * N_i * M_i \pmod{N}$
+
+### VỚI MỖI LẦN THỰC HIỆN TA LÀM VỚI BỘ 3 SỐ ĐỂ THOẢ ĐIỀU KIỆN BAN ĐẦU
+
+### Khi đó $m < n_i$ nên $m^{3} < N$ tìm m là thông điệp gốc ta chỉ cần lấy $\sqrt[3]{M}$
+
+### Định lý Håstad nhấn mạnh rằng việc sử dụng cùng một thông điệp với số mũ công khai nhỏ e trong RSA là không an toàn. Để ngăn chặn tấn công này:
+
+Sử dụng padding ngẫu nhiên (chẳng hạn như OAEP) để đảm bảo mỗi ciphertext là duy nhất.
+
+Tránh sử dụng số mũ công khai nhỏ khi truyền thông điệp giống nhau cho nhiều người nhận.
+
+
+## VỪA RỒI LÀ TÓM TẮT TOÀN BỘ LÝ THUYẾT VỀ RSA HỌC QUA 20 BÀI ĐẦU TIÊN CỦA RSA CHALLENGE THEO CÁCH HIỂU CỦA BẢN THÂN.
+
+
+
 
 
