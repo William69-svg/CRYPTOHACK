@@ -29,15 +29,15 @@ Với: d = $e^{-1} \pmod{phi(N)}$ hay là $d \cdot e \equiv 1 \pmod{\phi(N)}$
 
 Với một thông tin cần mã hoá m, ta sẽ mã hoá như sau:
 
-### c = $m^e \pmod{N}$
+c = $m^e \pmod{N}$
 
 **Giải mã**: Người nhận sử dụng khóa riêng của mình để giải mã thông điệp đã được mã hóa.
 
 Để mã hoá thông điệp c trên, ta sẽ giải mã như sau:
 
-### m = $c^d \pmod{N}$ vì khi này $c^d \equiv  m^{ed} \pmod{N}$
+m = $c^d \pmod{N}$ vì khi này $c^d \equiv  m^{ed} \pmod{N}$
 
-### Sự bảo mật của RSA:
+**Sự bảo mật của RSA**:
 
 Khó phá vỡ: Việc phá vỡ mã RSA đòi hỏi phải giải quyết một bài toán toán học phức tạp, đó là việc phân tích một số lớn thành tích của các số nguyên tố và bài toán RSA
 
@@ -72,7 +72,7 @@ Khi này $message(M)$ được mã hoá thành $message(M')$ với $M' \equiv M*
 
 Bob ký vào $message(M')$ và khi này có được chữ ký $S' = M'^{d} \pmod{N}$ của Bob bằng cách lấy $S = \frac{S'}{r} \pmod{N}$
 
-### $\Rightarrow S^{e} = \frac{S'^{e}}{r^{e}} = \frac{M'^{ed}}{r^{e}} \equiv \frac{M'}{r^{e}} = M \pmod{N}$
+$\Rightarrow S^{e} = \frac{S'^{e}}{r^{e}} = \frac{M'^{ed}}{r^{e}} \equiv \frac{M'}{r^{e}} = M \pmod{N}$
 
 Kỹ thuật trên được Marvin sử dụng, đã giúp tìm ra được chữ ký S của Bob.
 
