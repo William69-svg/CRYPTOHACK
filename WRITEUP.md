@@ -2,9 +2,9 @@
 # STARTER
 ## 1. Modular exponentiation & 2. Public keys
 
-### SỬ DỤNG HAI CÁCH ĐỂ TÍNH HÀM MODULE LUỸ THỪA
-### Cách 1:
-### Ý tưởng: tạo hàm tính luỹ thừa theo vòng lặp và lấy module theo số m.
+**SỬ DỤNG HAI CÁCH ĐỂ TÍNH HÀM MODULE LUỸ THỪA**
+Cách 1:
+Ý tưởng: tạo hàm tính luỹ thừa theo vòng lặp và lấy module theo số m.
 ```C++
 #include <iostream>
 #include <math.h>
@@ -23,7 +23,7 @@ int MOD(int a, int b, int m){    //THIET LAP HAM TINH MODULE
 
 
 Cách 2 (theo em tìm hiểu trên mạng)
-### Ý tưởng: dùng phương pháp tính luỹ thừa nhanh(trình bày theo cách hiểu của em)
+**Ý tưởng: dùng phương pháp tính luỹ thừa nhanh(trình bày theo cách hiểu của em)**
 VÍ DỤ: $a^{10} = a^{5} \cdot a^{5} \lor a^{5} = a^{2} \cdot a^{2} \cdot a$
 
 Khi b chẵn: cơ số tăng 2 và luỹ thừa: $a^{b} = (a^{2})^{\frac{b}{2}}$
@@ -62,7 +62,7 @@ ANS: 19906 & 301
 ```
 ## 3. Euler's Totient
 
-### Giải bài toán tìm giá trị phi Euler
+Giải bài toán tìm giá trị phi Euler
 ```c++
 #include <iostream>
 using namespace std;
@@ -79,7 +79,7 @@ int main() {
 }
 ``` 
 
-### Cách hiểu sai: đếm các số nguyên tố nhỏ hơn hoặc bằng N, thiếu điều kiện nếu số đó không nguyên tố với N thì không nhận 
+Cách hiểu sai: đếm các số nguyên tố nhỏ hơn hoặc bằng N, thiếu điều kiện nếu số đó không nguyên tố với N thì không nhận 
 ```c++
 long long EulerTot(long long n){         //Thiet lap ham phan tich thanh thua so nguyen to
      long long Euler = n;
@@ -106,19 +106,31 @@ long long EulerTot(long long n){         //Thiet lap ham phan tich thanh thua so
 $ANS: \phi(N) = 882564595536224140639625987657529300394956519977044270821168$
 ## 4. Private keys
 
-### Hàm mở rộng của thuật toán Euclid để tìm d
-### GIẢI THÍCH CÁCH HOẠT ĐỘNG CỦA HÀM EUCLID MỞ RỘNG (theo cách hiểu của em):
-### Dựa vào phương trình bên trên ta có: $a \cdot x + b \cdot y = GCD(a, b)$ khi ƯCLN của nó bằng 1 thì sẽ có được thuật toán RSA (với $d \cdot e \equiv 1 \pmod{b}$)
-### Để có thể giải phương trình này thì chúng ta cần biết và hiểu cách hoạt động của một phương trình nghiệm nguyên $a \cdot x + b \cdot y = c$
-### Quay lại bài toán, với a, b là e và $\phi(N)$ và x, y là lần lượt là các biến số cần tìm 
-### Ta có: $a = b \cdot y + x$ (a mod b) khi phép toán a mod b được thực hiện thì x, y cũng thay đổi
-### Phép thử: $ a = 30, b = 12, (x0, y0), (x1, y1), 30 $\cdot$ x + 12 $\cdot$ y = GCD(30, 12) $
-### Lần chia thứ 1: $30 = 12 \cdot 2 + 6(R)$
-###                      $a \cdot x0 + b \cdot y0 = 6$
-###                      Dễ thấy: (x0, y0) = (1; -2) và thoả mãn định lý euler với GCD(a, b) = 6
-### Lần chia thứ 2: $6 = 6 \cdot 1 + 0(R)$ 
-###                      Tương tư: (x1, y1) = (2; -5) không thoả mãn định lý 
-### Với cách hoạt động như trên ta có thể áp dụng để tìm d trong RSA khi GCD = 1
+**Hàm mở rộng của thuật toán Euclid để tìm d**
+
+GIẢI THÍCH CÁCH HOẠT ĐỘNG CỦA HÀM EUCLID MỞ RỘNG (theo cách hiểu của em):
+
+Dựa vào phương trình bên trên ta có: $a \cdot x + b \cdot y = GCD(a, b)$ khi ƯCLN của nó bằng 1 thì sẽ có được thuật toán RSA (với $d \cdot e \equiv 1 \pmod{b}$)
+
+Để có thể giải phương trình này thì chúng ta cần biết và hiểu cách hoạt động của một phương trình nghiệm nguyên $a \cdot x + b \cdot y = c$
+
+Quay lại bài toán, với a, b là e và $\phi(N)$ và x, y là lần lượt là các biến số cần tìm 
+
+Ta có: $a = b \cdot y + x$ (a mod b) khi phép toán a mod b được thực hiện thì x, y cũng thay đổi
+
+Phép thử: $ a = 30, b = 12, (x0, y0), (x1, y1), 30 $\cdot$ x + 12 $\cdot$ y = GCD(30, 12) $
+
+Lần chia thứ 1: $30 = 12 \cdot 2 + 6(R)$
+
+$a \cdot x0 + b \cdot y0 = 6$
+
+Dễ thấy: (x0, y0) = (1; -2) và thoả mãn định lý euler với GCD(a, b) = 6
+
+Lần chia thứ 2: $6 = 6 \cdot 1 + 0(R)$ 
+
+Tương tư: (x1, y1) = (2; -5) không thoả mãn định lý 
+
+Với cách hoạt động như trên ta có thể áp dụng để tìm d trong RSA khi GCD = 1
 
 ```c++
 #include <iostream>
@@ -140,18 +152,26 @@ long long EuclidMoRong(long long a, long long b, long long &x, long long &y) {
 }
 
 ```
-### Trong khi thực hiện phép toán thì x và y lần lượt thay đổi
-### Như trong ví dụ trên: tại lần thứ n thực hiện bài toán: 
-### Ta có: $GCD(a, b) = a \cdot x + b \cdot y$
-### Khi đó ở bước tiếp theo: GCD(b, a mod b) = $b \cdot x1$ + (a  mod  b) $\cdot y1$ hay $b \cdot x1 + (a - (\frac{a}{b}) \cdot b) \cdot y1$
-### $\rightarrow a \cdot y1 + b \cdot (x1 - (\frac{a}{b}) \cdot y1)$
-### Ở những bước tiếp theo khi nào phép toán chưa thực hiện xong thì bước hoán đổi vẫn còn...
-### Vậy nên sẽ thực hiện phép đệ quy, các biến x và y sẽ luân chuyển liên tục như sau:  
-###    $x = y1 - (\frac{b}{a}) \cdot x1$; 
-###    y = x1;
+Trong khi thực hiện phép toán thì x và y lần lượt thay đổi
+
+Như trong ví dụ trên: tại lần thứ n thực hiện bài toán: 
+
+Ta có: $GCD(a, b) = a \cdot x + b \cdot y$
+
+Khi đó ở bước tiếp theo: GCD(b, a mod b) = $b \cdot x1$ + (a  mod  b) $\cdot y1$ hay $b \cdot x1 + (a - (\frac{a}{b}) \cdot b) \cdot y1$
+
+$\rightarrow a \cdot y1 + b \cdot (x1 - (\frac{a}{b}) \cdot y1)$
+
+Ở những bước tiếp theo khi nào phép toán chưa thực hiện xong thì bước hoán đổi vẫn còn...
+
+Vậy nên sẽ thực hiện phép đệ quy, các biến x và y sẽ luân chuyển liên tục như sau:  
+
+$x = y1 - (\frac{b}{a}) \cdot x1$; 
+
+y = x1;
 
 
-### Hàm để tìm d, là nghịch đảo modular của e trong modulo phi
+**Hàm để tìm d, là nghịch đảo modular của e trong modulo phi**
 ```c++
 long long ModuleNghichdao(long long e, long long phi) {
     long long x, y;
@@ -180,7 +200,7 @@ int main() {
 }
 ```
 $ANS: d = 121832886702415731577073962957377780195510499965398469843281$
-## Sau khi nhận ra công dụng của Python quá mạnh mẽ, em đã sử dụng Python
+**Sau khi nhận ra công dụng của Python quá mạnh mẽ, em đã sử dụng Python**
 ## 5. RSA Decryption
 
 ```python
@@ -285,7 +305,7 @@ print (f"flag la: {decrypted_string}")
 Ans: crypto{squar3_r00t_i5_f4st3r_th4n_f4ct0r1ng!}
 
 ## 11. Manyprimes
-### Bài này có khá nhiều thừa số nguyên tố, nên đưa nó ra một tập hợp số và dùng công thức tính $\phi(N)$
+**Bài này có khá nhiều thừa số nguyên tố, nên đưa nó ra một tập hợp số và dùng công thức tính $\phi(N)$**
 ```python
 from Crypto.Util.number import inverse, long_to_bytes
 
@@ -308,7 +328,7 @@ Ans: crypto{700_m4ny_5m4ll_f4c70r5}
 
 # Public Exponent
 ## 12. Salty
-### Bài này là một trường họp đặc biệt khi cho e = 1 và ct < n
+**Bài này là một trường họp đặc biệt khi cho e = 1 và ct < n**
 ```python
 from Crypto.Util.number import getPrime, inverse, bytes_to_long, long_to_bytes, GCD
 n = 110581795715958566206600392161360212579669637391437097703685154237017351570464767725324182051199901920318211290404777259728923614917211291562555864753005179326101890427669819834642007924406862482343614488768256951616086287044725034412802176312273081322195866046098595306261781788276570920467840172004530873767                                                                  
@@ -323,8 +343,9 @@ print(decrypted_string)
 Ans: crypto{saltstack_fell_for_this!}
 
 ## 13. Modulus Inutilis
-### Sử dụng phương pháp tấn công Hastad's Broadcast Attack
-### Vì e = 3 và c < n nên phép module không ảnh hưởng đến m hay $m^{3}$
+**Sử dụng phương pháp tấn công Hastad's Broadcast Attack**
+
+**Vì e = 3 và c < n nên phép module không ảnh hưởng đến m hay $m^{3}$**
 ```python
 n = 17258212916191948536348548470938004244269544560039009244721959293554822498047075403658429865201816363311805874117705688359853941515579440852166618074161313773416434156467811969628473425365608002907061241714688204565170146117869742910273064909154666642642308154422770994836108669814632309362483307560217924183202838588431342622551598499747369771295105890359290073146330677383341121242366368309126850094371525078749496850520075015636716490087482193603562501577348571256210991732071282478547626856068209192987351212490642903450263288650415552403935705444809043563866466823492258216747445926536608548665086042098252335883
 e = 3
@@ -343,7 +364,7 @@ print(decrypted)
 Ans: crypto{N33d_m04R_p4dd1ng}
 
 ## 14. Everything is Big
-### Bài này sử dụng Weiner Attack do e là một số tương đối lớn
+**Bài này sử dụng Weiner Attack do e là một số tương đối lớn**
 ```python
 import owiener
 from Crypto.Util.number import long_to_bytes
@@ -360,7 +381,7 @@ print(long_to_bytes(m))
 Ans: crypto{s0m3th1ng5_c4n_b3_t00_b1g}
 
 ## 15. Crossed Wires
-### Đối với bài này khi đọc Source code có thể nhận ra Cipher text đã được mũ e mod N nên ta có thể Decrypt thì ta Factor N tìm d với khoá công khai của từng người và phi, và tìm ngược lại m thì ta mũ d mod N 
+**Đối với bài này khi đọc Source code có thể nhận ra Cipher text đã được mũ e mod N nên ta có thể Decrypt thì ta Factor N tìm d với khoá công khai của từng người và phi, và tìm ngược lại m thì ta mũ d mod N** 
 ```python
 from Crypto.Util.number import long_to_bytes, inverse
 N = 21711308225346315542706844618441565741046498277716979943478360598053144971379956916575370343448988601905854572029635846626259487297950305231661109855854947494209135205589258643517961521594924368498672064293208230802441077390193682958095111922082677813175804775628884377724377647428385841831277059274172982280545237765559969228707506857561215268491024097063920337721783673060530181637161577401589126558556182546896783307370517275046522704047385786111489447064794210010802761708615907245523492585896286374996088089317826162798278528296206977900274431829829206103227171839270887476436899494428371323874689055690729986771
@@ -384,7 +405,7 @@ print(m)
 Ans: crypto{3ncrypt_y0ur_s3cr3t_w1th_y0ur_fr1end5_publ1c_k3y}
 
 ## 16. Everything is Big 2
-### Lấy ý tưởng từ bài trước
+**Lấy ý tưởng từ bài trước**
 ```python 
 from Crypto.Util.number import long_to_bytes
 import owiener
@@ -400,22 +421,27 @@ print(m)
 Ans: crypto{bon3h5_4tt4ck_i5_sr0ng3r_th4n_w13n3r5}
 
 ## 17. Endless Emails
-### Ý TƯỞNG CỦA BÀI:
-### NHẬN THẤY SỖ MŨ CÔNG KHAI THẤP VÀ NHIỀU CẶP KHOÁ CÔNG KHAI KHÁC NHAU
-### DỰA VÀO PHƯƠNG PHÁP HASTAD BROADCAST VÀ CHINESE REMAINDER THEOREM (CRT)
-### MÔ TẢ CÁC BƯỚC CỤ THỂ:
-### CÁC BƯƠC THỰC HIỆN BÀI TOÁN ĐỊNH LÝ DƯ TRUNG QUỐC
-### Bước đầu tiên: ta lấy số dư $c_i$ của các phép toán M $\pmod{n_i}$ (VỚI $c_i$ = $M^{3} \pmod{n_i}$) 
+**Ý TƯỞNG CỦA BÀI**:
 
-### Tiếp theo: tìm Modulus $N_i$ = $\frac{N}{n_i}$ (với N là tích của i phần tử $n_i$)
+NHẬN THẤY SỖ MŨ CÔNG KHAI THẤP VÀ NHIỀU CẶP KHOÁ CÔNG KHAI KHÁC NHAU
 
-### Từ đó: với $N_i$ tương ứng với $M_i$ là nghịch đảo Modulus của $N_i \pmod{n_i}$
+DỰA VÀO PHƯƠNG PHÁP HASTAD BROADCAST VÀ CHINESE REMAINDER THEOREM (CRT)
 
-### Và ta có thể tính $M = (\sum_{i = 1}^{e} r_i * N_i * M_i \pmod{N}$
+MÔ TẢ CÁC BƯỚC CỤ THỂ:
 
-### VỚI MỖI LẦN THỰC HIỆN TA LÀM VỚI BỘ 3 SỐ ĐỂ THOẢ ĐIỀU KIỆN BAN ĐẦU
+CÁC BƯƠC THỰC HIỆN BÀI TOÁN ĐỊNH LÝ DƯ TRUNG QUỐC
 
-### Khi đó $m < n_i$ nên $m^{3} < N$ tìm m là thông điệp gốc ta chỉ cần lấy $\sqrt[3]{M}$
+Bước đầu tiên: ta lấy số dư $c_i$ của các phép toán M $\pmod{n_i}$ (VỚI $c_i$ = $M^{3} \pmod{n_i}$) 
+
+Tiếp theo: tìm Modulus $N_i$ = $\frac{N}{n_i}$ (với N là tích của i phần tử $n_i$)
+
+Từ đó: với $N_i$ tương ứng với $M_i$ là nghịch đảo Modulus của $N_i \pmod{n_i}$
+
+Và ta có thể tính $M = (\sum_{i = 1}^{e} r_i * N_i * M_i \pmod{N}$
+
+VỚI MỖI LẦN THỰC HIỆN TA LÀM VỚI BỘ 3 SỐ ĐỂ THOẢ ĐIỀU KIỆN BAN ĐẦU
+
+Khi đó $m < n_i$ nên $m^{3} < N$ tìm m là thông điệp gốc ta chỉ cần lấy $\sqrt[3]{M}$
 
 ```python
 from itertools import combinations      # Dùng để tạo ra các bộ 3 số
@@ -500,10 +526,13 @@ print (m)
 Ans: crypto{f3rm47_w45_4_g3n1u5}
 
 ## 19. Marin's Secrets
-### Ở bước đầu tiên, khi sử dụng factordb thì N được phân tích ra dạng 2 số nguyên tố có dạng 2^{p} - 1
-### Trong lý thuyết số có một dạng số nguyên tố biểu diễn dưới dạng 2{p} - 1 là số Mersenne với p là một số nguyên p dẫn đển số Mersenne phải là một số nguyên tố, tuy nhiên không phải số nguyên tố p nào cũng dẫn tới số Mersenne
-### Cho tới ngày nay con người mới chỉ có khả năng phân tích được tới 52 số vậy nên với các số Mersenne hiện tại là một dãy hữu hạn
-### Sử dụng thuật toán trên tìm p, q và bẻ khoá bài toán như bình thường
+Ở bước đầu tiên, khi sử dụng factordb thì N được phân tích ra dạng 2 số nguyên tố có dạng 2^{p} - 1
+
+Trong lý thuyết số có một dạng số nguyên tố biểu diễn dưới dạng 2{p} - 1 là số Mersenne với p là một số nguyên p dẫn đển số Mersenne phải là một số nguyên tố, tuy nhiên không phải số nguyên tố p nào cũng dẫn tới số Mersenne
+
+Cho tới ngày nay con người mới chỉ có khả năng phân tích được tới 52 số vậy nên với các số Mersenne hiện tại là một dãy hữu hạn
+
+Sử dụng thuật toán trên tìm p, q và bẻ khoá bài toán như bình thường
 ```python
 from Crypto.Util.number import inverse, long_to_bytes
 n = 658416274830184544125027519921443515789888264156074733099244040126213682497714032798116399288176502462829255784525977722903018714434309698108208388664768262754316426220651576623731617882923164117579624827261244506084274371250277849351631679441171018418018498039996472549893150577189302871520311715179730714312181456245097848491669795997289830612988058523968384808822828370900198489249243399165125219244753790779764466236965135793576516193213175061401667388622228362042717054014679032953441034021506856017081062617572351195418505899388715709795992029559042119783423597324707100694064675909238717573058764118893225111602703838080618565401139902143069901117174204252871948846864436771808616432457102844534843857198735242005309073939051433790946726672234643259349535186268571629077937597838801337973092285608744209951533199868228040004432132597073390363357892379997655878857696334892216345070227646749851381208554044940444182864026513709449823489593439017366358869648168238735087593808344484365136284219725233811605331815007424582890821887260682886632543613109252862114326372077785369292570900594814481097443781269562647303671428895764224084402259605109600363098950091998891375812839523613295667253813978434879172781217285652895469194181218343078754501694746598738215243769747956572555989594598180639098344891175879455994652382137038240166358066403475457 
