@@ -197,7 +197,7 @@ $\Rightarrow S^{e} = \frac{S'^{e}}{r^{e}} = \frac{M'^{ed}}{r^{e}} \equiv \frac{M
 
 Kỹ thuật trên được Marvin sử dụng, đã giúp tìm ra được chữ ký S của Bob.
 
-Ta có challenge như sau(không sử dụng chữ ký nên sẽ đơn giản hơn chút):
+Ta có challenge như sau:
 
 ```python
 from Crypto.PublicKey import RSA
@@ -225,28 +225,28 @@ def rsa_blinding(n, e, message):
     m = bytes_to_long(message)  # Chuyển thông điệp thành số nguyên
     m' = (m * pow(r, e, n)) % n  # Làm mờ thông điệp
 
-    # 3. Mã hóa thông điệp đã bị blinding
-    ciphertext = pow(m', e, n)
+    # 3. Chữ ký của nạn nhân lên tin nhắn giả
+    S' = pow(m', d, n)
 
     # Trả về challenge
-    return r, ciphertext
+    return r, S'
 # Tạo khóa RSA
 key, n, e, d = khoa_rsa()
 
 # Thông điệp ban đầu
-message = 429675711022679059865832445382534783564488586109
+m = 429675711022679059865832445382534783564488586109
 # Tạo challenge
-r, ciphertext = rsa_blinding(n, e, message)
-print(f"thông điệp giả được mã hoá : {ciphertext}")
+r, S' = rsa_blinding(n, e, message)
+print(f"thông điệp giả được mã hoá : {S'}")
 ```
 Và sau đây là cách giải:
 
 ```python
 def rsa_blinding_attack(n, e, d, r, ciphertext):
-    m' = pow(ciphertext, d, n)
-    r' = inverse(r, n)  # Tính nghịch đảo của r modulo n
-    m = (m' * r_inv) % n  # Khôi phục thông điệp ban đầu
-
+    r' = pow(r, e, n) # tính r^e module N
+    r'' = inverse(r, n)  # Tính nghịch đảo của r^e module n
+    S'' = pow(S', e, n)
+    message = (S'' * r'') % n 
     return long_to_bytes(message)  # Chuyển lại thành bytes
 ```
 Thông điệp gốc: b"{KCSC{Un533n_m3sS4g3}
