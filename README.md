@@ -64,6 +64,16 @@ Ta hoàn toàn có thể mã hoá được $(d_a)$ là khoá cá nhân của Ali
 
 Khi đó: để tìm $d_a$, đây chính nghịch đảo của $e_a$ theo module $\phi(N)$, $d_a \equiv e_a^{-1} \pmod{phi(N)}$ 
 
+Để mở rộng vấn đề ta giả sử có 2 đoạn mã hoá: $C_a$ và $C_b$
+
+Với hai cặp khoá $(N, e_a)$ và $(N, e_b)$, thì: $C_a = m^{e_a} \pmod{N}$ và $C_b = m^{e_b} \pmod{N}$
+
+Khi đó, ta nhận thấy rằng khi ta luỹ thừa hai đoạn Cipher text theo luỹ thừa 2 số nguyên u và v ta sẽ có: $C_a^{u} = (m^{e_a})^{u} \pmod{N}$ và $C_b^{v} = (m^{e_b})^{v} \pmod{N}$
+
+Khi thực hiện phép nhân của hai Cipher text $C_a^{u}$ và $C_b^{v}$ ta sẽ có: $C_a^{u} \cdot C_b^{v}$ = $(m^{{e_a} \cdot u + {e_b} \cdot v}) \pmod{N}$ (*)
+
+Ta thấy $Gcd(e_a, e_b) = 1$, nên theo Định lý Euclid mở rộng: ${e_a} \cdot u + {e_b} \cdot v = 1$ vậy nên (*) trở thành $m^{1} = m \pmod{N}$ và ta đã tìm được thông điệp ban đầu mà không cần phải dùng tới khoá riêng tư d!
+
 **BLINDING**
 
 Marvin muốn Bob ký vào một $message(M)$. Nhưng Bob từ chối, vây nên Marvin cố gắng tìm ra một số r sao cho $gcd(N, r) = 1$ 
