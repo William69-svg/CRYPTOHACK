@@ -221,32 +221,32 @@ def rsa_blinding(n, e, message):
     while gcd(r, n) != 1:  # Nếu r không nguyên tố cùng nhau với n, thử lại
         r = get_random_bytes(16)
         r = bytes_to_long(r) % n
-    # 2. Mã hóa thông điệp đã được "blinded"
+    # 2. Mã hóa thông điệp đã được làm giả
     m = bytes_to_long(message)  # Chuyển thông điệp thành số nguyên
-    m' = (m * pow(r, e, n)) % n  # Làm mờ thông điệp
+    m_faked = (m * pow(r, e, n)) % n  # Làm mờ thông điệp
 
     # 3. Chữ ký của nạn nhân lên tin nhắn giả
-    S' = pow(m', d, n)
+    S_faked = pow(m_faked, d, n)
 
     # Trả về challenge
-    return r, S'
+    return r, S_faked
 # Tạo khóa RSA
 key, n, e, d = khoa_rsa()
 
 # Thông điệp ban đầu
 m = 429675711022679059865832445382534783564488586109
 # Tạo challenge
-r, S' = rsa_blinding(n, e, message)
-print(f"thông điệp giả được mã hoá : {S'}")
+r, S_faked = rsa_blinding(n, e, message)
+print(f"thông điệp giả được mã hoá : {S_faked}")
 ```
 Và sau đây là cách giải:
 
 ```python
 def rsa_blinding_attack(n, e, d, r, ciphertext):
-    r' = pow(r, e, n) # tính r^e module N
-    r'' = inverse(r, n)  # Tính nghịch đảo của r^e module n
-    S'' = pow(S', e, n)
-    message = (S'' * r'') % n 
+    r_expo = pow(r, e, n) # tính r^e module N
+    r_inverse = inverse(r, n)  # Tính nghịch đảo của r^e module n
+    S_blinded = pow(S_faked, e, n)
+    message = (S_blinded * r_inverse) % n 
     return long_to_bytes(message)  # Chuyển lại thành bytes
 ```
 Thông điệp gốc: b'{KCSC{Un533n_m3sS4g3}'
@@ -310,7 +310,7 @@ def khoa_rsa(bits=1024):
     d = inverse(e, phi_n)
     
     # Đảm bảo d đủ nhỏ (nếu không sẽ không hợp lệ cho Weiner attack)
-    if d > n // 2:
+    if d >= n // 2:
         d = random.randint(1, n // 2)  # Giới hạn d nhỏ hơn n/2
     
     # Trả về khóa công khai (e, n) và khóa riêng (d)
@@ -323,10 +323,10 @@ def rsa_challenge():
     # In ra khóa công khai để sử dụng trong challenge
     print(f"Khóa công khai: (e={e}, n={n})")
     
-    # Tạo thông điệp để ký
+    # Tạo thông điệp 
     m = 5460388687224414873784720636142690220899563277268816055949
     print(f"Thông điệp: {m}")
-    return e, n, d, message
+    return e, n, d, m
 
 # Tạo challenge và in ra khóa công khai
 e, n, d, m = rsa_challenge()
