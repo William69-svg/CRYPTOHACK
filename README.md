@@ -56,6 +56,8 @@ Với một số trường hợp khi N không dễ phân tích thì ta sẽ có 
 
 **COMMON MODULUS**
 
+**1. External Attacks**
+
 Trong trường hợp này, sẽ chỉ có một module N được sử dụng, vì vậy với mỗi người dùng thứ i thì sẽ có cặp ($e_i$, $d_i$) tương ứng thì mỗi người sẽ có một khoá cá nhân và khoá công khai lần lượt là $(N, e_i)$ và $(N, d_i)$ 
 
 Tuy nhiên đây là một cách tạo khoá có nhiều sơ hở, vì giả sử có Alice và Bob sở hữu 2 cặp $(e_a, d_a)$ và $(e_b, d_b)$
@@ -73,6 +75,10 @@ Khi đó, ta nhận thấy rằng khi ta luỹ thừa hai đoạn Cipher text th
 Khi thực hiện phép nhân của hai Cipher text $C_a^{u}$ và $C_b^{v}$ ta sẽ có: $C_a^{u} \cdot C_b^{v}$ = $(m^{{e_a} \cdot u + {e_b} \cdot v}) \pmod{N}$ (*)
 
 Ta thấy $Gcd(e_a, e_b) = 1$, nên theo Định lý Euclid mở rộng: ${e_a} \cdot u + {e_b} \cdot v = 1$ vậy nên (*) trở thành $m^{1} = m \pmod{N}$ và ta đã tìm được thông điệp ban đầu mà không cần phải dùng tới khoá riêng tư d!
+
+**2. Internal Attacks**
+
+Trong một trường hợp khác ta sở hữu bộ khoá $(N, e_0, d_0)$
 
 **BLINDING**
 
