@@ -167,7 +167,7 @@ m = rsa_elementary_attack(n, e1, e2, c1, c2)
 # In thông điệp khôi phục
 print("Thông điệp gốc:", m.decode())
 ```
-Thông điệp gốc: b"KCSC{3xt3rn4l_4tt4ack!}"
+Thông điệp gốc: b'KCSC{3xt3rn4l_4tt4ack!}'
 
 **1.2 Internal Attacks**
 
@@ -249,9 +249,10 @@ def rsa_blinding_attack(n, e, d, r, ciphertext):
     message = (S'' * r'') % n 
     return long_to_bytes(message)  # Chuyển lại thành bytes
 ```
-Thông điệp gốc: b"{KCSC{Un533n_m3sS4g3}
+Thông điệp gốc: b'{KCSC{Un533n_m3sS4g3}'
 
 III. Low Private Exponent (Số mũ riêng d nhỏ)
+
 **WEINER ATTACK**
 
 Cho N = $p \cdot q$
@@ -287,6 +288,58 @@ Khi đó:
 Từ đó, áp dụng định lý về dãy hội tụ liên phân số, ta tìm trong dãy hội tụ của khai triển liên phân số $\frac{e}{n}$ sẽ tìm được $\frac{k}{d}$. 
 
 Và vì $ed - k\phi(N) \equiv 1$ nên $gcd(k, d) = 1$ chứng tỏ phân số $\frac{k}{d}$ là một phân số tối giản, và ta có thể dễ dàng tìm được d 
+
+Ta có challenge như sau:
+
+```python
+
+from Crypto.PublicKey import RSA
+from Crypto.Util.number import getPrime, inverse, bytes_to_long
+import random
+
+# Tạo một khóa RSA với khóa riêng nhỏ d
+def khoa_rsa(bits=1024):
+    # Tạo hai số nguyên tố ngẫu nhiên p và q
+    p = getPrime(bits // 2)
+    q = getPrime(bits // 2)
+    
+    # Tính n và phi(n)
+    n = p * q
+    phi_n = (p - 1) * (q - 1)
+    e = 65537  # Giá trị thường được chọn cho e
+    d = inverse(e, phi_n)
+    
+    # Đảm bảo d đủ nhỏ (nếu không sẽ không hợp lệ cho Weiner attack)
+    if d > n // 2:
+        d = random.randint(1, n // 2)  # Giới hạn d nhỏ hơn n/2
+    
+    # Trả về khóa công khai (e, n) và khóa riêng (d)
+    return (e, n, d)
+
+# Tạo challenge với khóa RSA có d nhỏ
+def rsa_challenge():
+    e, n, d = khoa_rsa(bits=1024)
+    
+    # In ra khóa công khai để sử dụng trong challenge
+    print(f"Khóa công khai: (e={e}, n={n})")
+    
+    # Tạo thông điệp để ký
+    m = 5460388687224414873784720636142690220899563277268816055949
+    print(f"Thông điệp: {m}")
+    return e, n, d, message
+
+# Tạo challenge và in ra khóa công khai
+e, n, d, m = rsa_challenge()
+
+# Tạo challenge
+print(f"\n=== CHALLENGE ===")
+print(f"Khóa công khai (e, n): ({e}, {n})")
+print(f"Thông điệp: {m}")
+
+```
+Ta có bài giải như sau:
+
+
 
 Weiner đưa ra cách chống lại phương pháp tấn công trên sử dụng 2 cách:
 
