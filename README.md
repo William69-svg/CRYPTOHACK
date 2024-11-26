@@ -44,7 +44,7 @@ Khó phá vỡ: Việc phá vỡ mã RSA đòi hỏi phải giải quyết một
 ## 3. Các phương thức tấn công
 Như đã tìm hiểu bên trên thì RSA là một thuật toán mã hoá phức tạp và đòi hỏi nhiều sự tính toán 
 Sau đây sẽ là một vài phương thức tấn công trong RSA 
-**I. Factoring Large Integers (Phân tích các số nguyên lớn)**:
+### I. Factoring Large Integers (Phân tích các số nguyên lớn):
 
 Phương thức tiếp cận đầu tiên và trực diện nhất là phân tích N thành các thừa số nguyên tố, đây là lối tấn công đầu tiên đơn giản và trực diện nhất với việc ta đã biết trước số tự nhiên e. 
 
@@ -52,7 +52,7 @@ Như được biết bên trên, N được tạo thành từ 2 số nguyên t�
 
 Với một số trường hợp khi N không dễ phân tích thì ta sẽ có những hướng tiếp cận khác, tuy nhiên, việc phân tích module N vẫn là một bước thiết yếu và quan trọng trong việc giải các bài toán phức tạp hơn.
 
-**II. Elementary Attacks**:
+### II. Elementary Attacks:
 
 **1.COMMON MODULUS**
 
@@ -251,7 +251,7 @@ def rsa_blinding_attack(n, e, d, r, ciphertext):
 ```
 **Thông điệp gốc: b'KCSC{Un533n_m3sS4g3}'**
 
-III. Low Private Exponent (Số mũ riêng d nhỏ)
+### III. Low Private Exponent (Số mũ riêng d nhỏ)
 
 **WEINER ATTACK**
 
@@ -397,6 +397,19 @@ if d_found:
 else:
     print("Không thể tìm thấy khóa riêng d.")
 ```
+**Hoặc ta có thể sử dụng thư viện Oweiner như một tool để giải nhanh hơn**
+```python
+import oweiner
+from Crypto.Util.number import bytes_to_long
+e, n, d, m = rsa_challenge()
+d_found = oweiner.attack(e, n)
+if d_found:
+    print(f"Khóa riêng d tìm được: {d_found}")
+    print(f"Khóa riêng d thực tế: {d_actual}")
+    print(f"Khóa tìm được {'đúng' if d_found == d_actual else 'sai'}!")
+else:
+    print("Không thể tìm thấy d bằng Weiner Attack.")
+```
 **Thông điệp gốc: b'KCSC{5m4LL_w31n3r_5m4LL_xd}'**
 
 Weiner đưa ra cách chống lại phương pháp tấn công trên sử dụng 2 cách:
@@ -409,7 +422,7 @@ Quá trình giải mã có thể diễn ra như sau: ta tính $m_p = C^{d_p} \pm
 
 Với m tìm được thì sẽ thoả $m = c^{d} \pmod{N}$ và vì vậy với d lớn thì lúc này Weiner Attack không còn hiệu quả.
 
-IV. Low Public Exponent (Số mũ công khai e nhỏ)
+### IV. Low Public Exponent (Số mũ công khai e nhỏ)
 
 ĐỐI VỚI PHẦN NÀY, PHƯƠNG PHÁP MẠNH MẼ NHẤT ĐỂ GIẢI QUYẾT SẼ LÀ ĐỊNH LÝ COPPERSMITH TUY NHIÊN TRONG CRYPTOHACK: RSA CHALLENGE CHƯA ĐỀ CẬP ĐẾN NÊN TA SẼ TÌM HIỂU VỀ MỘT TRONG SỐ NHỮNG ỨNG DỤNG ĐẦU TIÊN CỦA NÓ.
 
@@ -445,6 +458,7 @@ Sử dụng padding ngẫu nhiên (chẳng hạn như OAEP) để đảm bảo m
 
 Tránh sử dụng số mũ công khai nhỏ khi truyền thông điệp giống nhau cho nhiều người nhận.
 
+### V. Implementation Attack:
 
 
 
