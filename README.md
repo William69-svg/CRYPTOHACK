@@ -44,7 +44,7 @@ Khó phá vỡ: Việc phá vỡ mã RSA đòi hỏi phải giải quyết một
 ## 3. Các phương thức tấn công
 Như đã tìm hiểu bên trên thì RSA là một thuật toán mã hoá phức tạp và đòi hỏi nhiều sự tính toán 
 Sau đây sẽ là một vài phương thức tấn công trong RSA 
-### I. Factoring Large Integers (Phân tích các số nguyên lớn):
+### I. Factoring Large Integers (Phân tích các số nguyên lớn)
 
 Phương thức tiếp cận đầu tiên và trực diện nhất là phân tích N thành các thừa số nguyên tố, đây là lối tấn công đầu tiên đơn giản và trực diện nhất với việc ta đã biết trước số tự nhiên e. 
 
@@ -52,7 +52,7 @@ Như được biết bên trên, N được tạo thành từ 2 số nguyên t�
 
 Với một số trường hợp khi N không dễ phân tích thì ta sẽ có những hướng tiếp cận khác, tuy nhiên, việc phân tích module N vẫn là một bước thiết yếu và quan trọng trong việc giải các bài toán phức tạp hơn.
 
-### II. Elementary Attacks:
+### II. Elementary Attacks
 
 **1.COMMON MODULUS**
 
@@ -458,9 +458,21 @@ Sử dụng padding ngẫu nhiên (chẳng hạn như OAEP) để đảm bảo m
 
 Tránh sử dụng số mũ công khai nhỏ khi truyền thông điệp giống nhau cho nhiều người nhận.
 
-### V. Implementation Attack:
+### V. Implementation Attacks
 
+**1. Fermat Attacks**
 
+Fermat Attacks là một phương pháp khai thác RSA khi hai số nguyên tố $p$ và $q$ của Module $N = p \cdot q$ có số bit bằng nhau, nhưng có giá trị gần nhau $|p - q| < \sqrt[4]{N}$
+
+Ta có : $N = p \cdot q = (\frac{p + q}{2})^{2} - (\frac{p - q}{2})^{2} = a^{2} - b^{2} = (a - b) \cdot (a + b)$
+
+Khi này ta dặt: $p = (a + b)$ và $q = (a - b)$ và $b^{2} = a^{2} - n$
+
+Và nhiệm vụ của thuật toán là tìm a để $a^{2} - n$ là một số chính phương thì b^{2} cũng là một số chính phương
+
+Khi này thì việc tìm p, q là dễ dàng và thuật toán dừng lại khi $p \cdot q = N$
+
+Về mặt toán học thì: với $b = \frac{p - q}{2} thì b sẽ rất nhỏ vì p và q thực tế có giá trị gần nhau, tức là $a \appendix N$ 
 
 **VỪA RỒI LÀ TÓM TẮT TOÀN BỘ LÝ THUYẾT VỀ RSA HỌC QUA 20 BÀI ĐẦU TIÊN CỦA RSA CHALLENGE THEO CÁCH HIỂU CỦA BẢN THÂN**.
 
