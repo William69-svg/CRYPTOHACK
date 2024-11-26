@@ -94,7 +94,7 @@ def generate_rsa_challenge():
     e2 = 5
 
     # Thông điệp gốc
-    m = 14335093139487056536735638447103685144813354889847868574725083697953
+    m = 7208762213778109154890632829935510436952992780502376829
 
     # Mã hóa thông điệp
     c1 = pow(m, e1, n)  # Mã hóa bằng e1
@@ -167,7 +167,7 @@ m = rsa_elementary_attack(n, e1, e2, c1, c2)
 # In thông điệp khôi phục
 print("Thông điệp gốc:", m.decode())
 ```
-Thông điệp gốc: b'KCSC{3xt3rn4l_4tt4ack!}'
+**Thông điệp gốc: b'KCSC{3xt3rn4l_4tt4ack!}'**
 
 **1.2 Internal Attacks**
 
@@ -221,11 +221,11 @@ def rsa_blinding(n, e, message):
     while gcd(r, n) != 1:  # Nếu r không nguyên tố cùng nhau với n, thử lại
         r = get_random_bytes(16)
         r = bytes_to_long(r) % n
-    # 2. Mã hóa thông điệp đã được làm giả
+# Làm giả thông điệp
     m = bytes_to_long(message)  # Chuyển thông điệp thành số nguyên
     m_faked = (m * pow(r, e, n)) % n  # Làm mờ thông điệp
 
-    # 3. Chữ ký của nạn nhân lên tin nhắn giả
+# Chữ ký của nạn nhân lên tin nhắn giả
     S_faked = pow(m_faked, d, n)
 
     # Trả về challenge
@@ -249,7 +249,7 @@ def rsa_blinding_attack(n, e, d, r, ciphertext):
     message = (S_blinded * r_inverse) % n 
     return long_to_bytes(message)  # Chuyển lại thành bytes
 ```
-Thông điệp gốc: b'{KCSC{Un533n_m3sS4g3}'
+**Thông điệp gốc: b'KCSC{Un533n_m3sS4g3}'**
 
 III. Low Private Exponent (Số mũ riêng d nhỏ)
 
@@ -324,7 +324,7 @@ def rsa_challenge():
     print(f"Khóa công khai: (e={e}, n={n})")
     
     # Tạo thông điệp 
-    m = 5460388687224414873784720636142690220899563277268816055949
+    m = 30961397952818271268472563258576978866974420779321329871889130621
     print(f"Thông điệp: {m}")
     return e, n, d, m
 
@@ -337,9 +337,67 @@ print(f"Khóa công khai (e, n): ({e}, {n})")
 print(f"Thông điệp: {m}")
 
 ```
-Ta có bài giải như sau:
+Ta có bài giải bằng hai cách như sau:
 
+**SỬ DỤNG THUẬT TOÁN THEO LÝ THUYẾT**
+```python
+from sympy import continued_fraction, continued_fraction_convergents, Rational
+from Crypto.Util.number import long_to_bytes
+def weiner_attack(e, n):
+    # Tính phân số liên tục của e/n
+    cf = continued_fraction(Rational(e, n))
+    convergents = continued_fraction_convergents(cf)
+    for frac in convergents:
+        k, d = frac.numerator, frac.denominator
+        if k == 0 or d == 0:
+            continue
+```
+Check xem tử hoặc mẫu có bằng 0 hay không, nếu có thì không hợp lệ vì $d \!= 0$ và nếu k = 0, thì thuật toán không thể tiếp tục
 
+```python
+# Kiểm tra tính hợp lệ của d
+        if (e * d - 1) % k == 0:
+            phi_n = (e * d - 1) // k
+            # Tính thử p, q
+            b = n - phi_n + 1    #b = p + q
+            delta = b * b - 4 * n
+            if delta >= 0:
+                sqrt_delta = int(delta**0.5)
+                if sqrt_delta * sqrt_delta == delta:
+                    p = (b + sqrt_delta) // 2
+                    q = (b - sqrt_delta) // 2
+                    if p * q == n:
+                        return d  # Trả về d nếu hợp lệ
+    return None
+```
+Đây là một phần quan trọng của thuật toán bởi lẽ ta phải kiểm tra điều kiện của d: Vì $\phi{N}$ là một số nguyên nên khi $(e \cdot d - 1)$ % k nó phải = 0
+
+Một bước kĩ càng hơn để kiểm tra tính đúng đắn của thuật toán và tính hợp lệ của d:
+
+Ta sẽ kiểm tra nếu: $p \cdot q = n$.
+
+Dựa vào công thức tính hàm phi Euler trong RSA, ta có: $\phi{N} = (p - 1) \cdot (q - 1) = p \cdot q - (p + q) + 1$ hay $\phi{N} = N - (p + q) + 1$ HAY $(p + q) = N - \phi{N} + 1$
+
+Theo định lý Viete đảo, khi này ta sẽ có một phương trình bậc 2: $X^{2} - b \cdot x + N$ (với $b = p + q$ và $N = p \cdot q$)
+
+Và việc giải phương trình bậc 2 trên sử dụng delta = $b^{2} - 4 \cdot (1) \cdot (N)$ với p, q là hai nghiệm $x_1$ và $x_2$ của phương trình đó.
+
+Việc còn lại là tính N bằng p và q vừa tìm, nếu như chúng thoả toàn bộ điều kiện nghĩa là d chính xác.
+```python
+e, n, d, m = rsa_challenge()
+d_found = weiner_attack(e, n)
+if d_found:
+    print(f"Khóa riêng d tìm thấy: {d_found}")
+    print(f"Khóa riêng thực tế: {d}")
+
+    # Giải mã thông điệp
+    c = pow(m, e, n)  # Mã hóa thông điệp
+    m = pow(c, d_found, n)  # Giải mã thông điệp
+    print(f"Thông điệp sau giải mã: {m_decrypted}")
+else:
+    print("Không thể tìm thấy khóa riêng d.")
+```
+**Thông điệp gốc: b'KCSC{5m4LL_w31n3r_5m4LL_xd}'**
 
 Weiner đưa ra cách chống lại phương pháp tấn công trên sử dụng 2 cách:
 
