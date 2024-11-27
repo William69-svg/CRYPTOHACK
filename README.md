@@ -432,11 +432,11 @@ Với số mũ công khai là nhỏ và ta cần ít nhất biết được giá
 
 GIẢ SỬ: e = 3 do đó M = m^3 và ta phải giải hệ phương trình:
 
-$c_1 = M^3 \pmod{n_1}$
+$c_1 = m^3 \pmod{n_1}$
 
-$c_2 = M^3 \pmod{n_2}$
+$c_2 = m^3 \pmod{n_2}$
 
-$c_3 = M^3 \pmod{n_3}$
+$c_3 = m^3 \pmod{n_3}$
 
 CÁC BƯỚC THỰC HIỆN BÀI TOÁN ĐỊNH LÝ DƯ TRUNG QUỐC
 
