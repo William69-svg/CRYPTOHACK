@@ -438,7 +438,7 @@ $c_2 = M^3 \pmod{n_2}$
 
 $c_3 = M^3 \pmod{n_3}$
 
-CÁC BƯƠC THỰC HIỆN BÀI TOÁN ĐỊNH LÝ DƯ TRUNG QUỐC
+CÁC BƯỚC THỰC HIỆN BÀI TOÁN ĐỊNH LÝ DƯ TRUNG QUỐC
 
 Bước đầu tiên: ta lấy số dư $c_i$ của các phép toán M $\pmod{n_i}$ (VỚI $c_i$ = $M^{3} \pmod{n_i}$) 
 
@@ -466,13 +466,16 @@ Fermat Attacks là một phương pháp khai thác RSA khi hai số nguyên tố
 
 Ta có : $N = p \cdot q = (\frac{p + q}{2})^{2} - (\frac{p - q}{2})^{2} = a^{2} - b^{2} = (a - b) \cdot (a + b)$
 
-Khi này ta dặt: $p = (a + b)$ và $q = (a - b)$ và $b^{2} = a^{2} - n$
+Khi này ta dặt: $p = (a + b)$ và $q = (a - b)$ và $b^{2} = a^{2} - N$
 
-Và nhiệm vụ của thuật toán là tìm a để $a^{2} - n$ là một số chính phương thì b^{2} cũng là một số chính phương
+Và nhiệm vụ của thuật toán là tìm a để $a^{2} - n$ là một số chính phương thì $b^{2}$ cũng là một số chính phương
 
 Khi này thì việc tìm p, q là dễ dàng và thuật toán dừng lại khi $p \cdot q = N$
 
-Về mặt toán học thì: với $b = \frac{p - q}{2} thì b sẽ rất nhỏ vì p và q thực tế có giá trị gần nhau, tức là $a \appendix N$ 
+Về mặt toán học thì: với $b = \frac{p - q}{2}$ thì b sẽ rất nhỏ vì p và q thực tế có giá trị gần nhau, tức là $a \approx \sqrt{N}$. 
+                     Vì $b$ nhỏ, phép tính $b^{2} = a^{2} - N$ sẽ nhanh chóng dấn đến một số chính phương
+
+**2. Timing Attacks(Side-channel Attacks)**                     
 
 **VỪA RỒI LÀ TÓM TẮT TOÀN BỘ LÝ THUYẾT VỀ RSA HỌC QUA 20 BÀI ĐẦU TIÊN CỦA RSA CHALLENGE THEO CÁCH HIỂU CỦA BẢN THÂN**.
 
