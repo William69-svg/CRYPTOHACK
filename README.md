@@ -16,9 +16,9 @@ Khóa riêng(d): Được giữ bí mật và chỉ người sở hữu mới c�
 
 Để tạo ra một cặp khoá công khai ta tạo ra một cặp số (N, e) tương ứng với:
 
-N = p*q (p, q là hai số nguyên tố) 
+N = $p \cdot q$ (p, q là hai số nguyên tố) 
 
-Sau đó tính: phi(N) = (p - 1)*(q - 1) và chọn một số e ( 1 < e < $\phi(N)$ ) sao cho e và $\phi(N)$ là hai số nguyên tố cùng nhau
+Sau đó tính: phi(N) = $(p - 1) \cdot (q - 1)$ và chọn một số e ( 1 < e < $\phi(N)$ ) sao cho e và $\phi(N)$ là hai số nguyên tố cùng nhau
 
 Và cuối cùng là tạo ra khoá riêng d 
 
@@ -202,7 +202,8 @@ Ta có challenge như sau:
 ```python
 from Crypto.PublicKey import RSA
 from Crypto.Random import get_random_bytes
-from Crypto.Util.number import getPrime, inverse, bytes_to_long, long_to_bytes
+from Crypto.Util.number import bytes_to_long, long_to_bytes
+from math import gcd
 
 # Tạo một khóa RSA
 def khoa_rsa(bits=1024):
@@ -221,33 +222,46 @@ def rsa_blinding(n, e, message):
     while gcd(r, n) != 1:  # Nếu r không nguyên tố cùng nhau với n, thử lại
         r = get_random_bytes(16)
         r = bytes_to_long(r) % n
-# Làm giả thông điệp
+
+    # Làm giả thông điệp
     m = bytes_to_long(message)  # Chuyển thông điệp thành số nguyên
     m_faked = (m * pow(r, e, n)) % n  # Làm mờ thông điệp
 
-# Chữ ký của nạn nhân lên tin nhắn giả
+    # Chữ ký của nạn nhân lên tin nhắn giả
     S_faked = pow(m_faked, d, n)
 
     # Trả về challenge
     return r, S_faked
+
 # Tạo khóa RSA
 key, n, e, d = khoa_rsa()
-
-# Thông điệp ban đầu
-m = 429675711022679059865832445382534783564488586109
 # Tạo challenge
 r, S_faked = rsa_blinding(n, e, message)
-print(f"thông điệp giả được mã hoá : {S_faked}")
+
+# In kết quả
+print(f"Thông điệp giả được mã hóa (chữ ký giả): {S_faked}")
+print(f"Giá trị của r: {r}")
+print(f"Modulus n: {n}")
+print(f"Public exponent e: {e}")
+print(f"Private exponent d: {d}")
+
+
 ```
 Và sau đây là cách giải:
 
 ```python
-def rsa_blinding_attack(n, e, d, r, ciphertext):
+def rsa_blinding_attack(n, e, d, r):
     r_expo = pow(r, e, n) # tính r^e module N
     r_inverse = inverse(r, n)  # Tính nghịch đảo của r^e module n
     S_blinded = pow(S_faked, e, n)
     message = (S_blinded * r_inverse) % n 
     return long_to_bytes(message)  # Chuyển lại thành bytes
+n = 120686219144673234167867405502901914285464788746778972124664261044679878638050399118503809474708098827450518633279077345362643674868037908021725870617596073447394230226405185425440892206017111693640208716134383051460283178674063620635649455173527928564860747752024506536595834185242845960191926239821289113317
+e = 65537
+r = 288184004769580368693734587631134900425
+S_faked = 117829787459435692397151936822244065122313314565165782263324812896364210336682798976675440586373658102210283175061385315706521829590134035362468129628326208333988959942317370076315348800027933758626242401397065083727384492960050825695796021977055872121716229825543881148273445424165156961417519060033523101156
+m = rsa_blinding_attack(n, e, d, r)
+print(m)
 ```
 **Thông điệp gốc: b'KCSC{Un533n_m3sS4g3}'**
 
@@ -476,6 +490,196 @@ Về mặt toán học thì: với $b = \frac{p - q}{2}$ thì b sẽ rất nhỏ
                      Vì $b$ nhỏ, phép tính $b^{2} = a^{2} - N$ sẽ nhanh chóng dấn đến một số chính phương
 
 **2. Timing Attacks(Side-channel Attacks)**                     
+
+RSA Timing Attack là một loại side-channel attack, dựa trên việc đo lường thời gian mà một hệ thống sử dụng để thực hiện các phép toán mật mã, cụ thể là việc giải mã RSA hoặc ký số RSA. Tấn công này tận dụng các khác biệt về thời gian thực thi, do chúng tiết lộ thông tin về các bit của khóa riêng tư $d$ trong thuật toán RSA.
+
+**Ý Tưởng Cơ Bản Của Timing Attack**
+
+Giả sử: bạn sở hữu một bộ khoá RSA$(N, e, d)$
+
+Khi bạn giải mã một thông tin: $m = C^{d} \pmod{N}$ hay tạo chữ ký: $s = m^{d} \pmod{N}$, ta đều phải dùng tới khoá riêng tư $d$. 
+
+Trong RSA, thuật toán lũy thừa module (modular exponentiation) thường sử dụng các phương pháp như square-and-multiply. Trong phương pháp này:
+
+Nếu một bit trong $d$ bằng 1, thì cần thực hiện phép nhân.
+
+Nếu một bit trong $d$ bằng 0, thì không cần thực hiện phép nhân.
+
+Điều này dẫn đến việc thời gian thực hiện phụ thuộc vào giá trị cụ thể của các bit trong $d$.
+
+Kẻ tấn công sẽ: đo thời gian thực thi của từng ciphertext $C_i$, khi hệ thống thực hiện giải mã.
+
+Nếu thời gian giải mã dài hơn, điều đó gợi ý rằng bit hiện tại của $d$ có thể là 1.
+
+Nếu thời gian giải mã ngắn hơn, điều đó gợi ý rằng bit hiện tại của $d$ có thể là 0.
+
+Sau khi thu thập đủ số lượng ciphertext và đo thời gian tương ứng, kẻ tấn công có thể ghép các bit đã suy luận được để xây dựng lại khóa $d$, khóa được hoàn thiện dựa trên các bit từ cao đến thấp, cho đến khi đủ toàn bộ giá trị $d$.
+
+Vậy thì làm sao kẻ tấn công có thể tính được khoảng thời gian chênh lệch giữa các lần thực hiện phép toán và đoán được giá trị của $d$, đó là dựa vào thuật toán "Repeated Squaring"
+
+Khi ta giải mã một ciphertext hoặc ký lên một thông điệp: $C = m^{d} \pmod{N}$
+
+Việc tính toán trực tiếp $m^{d}$ là một công việc tốn nhiều tài nguyên
+
+Vậy nên ta sẽ viết $d$ dưới dạng thập phân: $d = 2^{n} \cdot d_n + 2^{n - 1} \cdot d_{n - 1} +...+ 2^{1} \cdot d_1 + 2^{0} \cdot d_0$.
+
+Và viết dưới dạng tổng quát sẽ là: **$d = \sum_{i = 0}^{n} 2^{i} \cdot d_i$**.
+
+Khi đó $C = m^{\sum_{i = 0}^{n} 2^{i} \cdot d_i} \rightarrow C = \prod_{i = 0}^{n} m^{2^{i} \cdot d_i}$ 
+
+Ta đặt: $z = m$ và $C$ = 1
+
+Vậy để tính $C$ ta thực hiện thuật toán sau:
+
+Với mỗi bit $d_0$ thấp nhất tới bit cao nhất:
+
+Nếu $d_i = 1: C = C \cdot z \pmod{N}$
+
+Và bình phương $z: z = z^{2} \pmod{N}$
+
+Nếu $d_i = 0$ ta không thực hiện phép nhân $C \cdot z$ tuy nhiên vẫn thực hiện phép bình phương $z$ theo module N
+
+Giải thích: 
+
+Tại sao cập nhật biến $C = C \cdot z$, bởi lẽ khi $d_i = 1$ thì ta cần kết hợp giá trị $m^{2^{i}}$ được lưu trữ trong z vào kết quả cuối cùng.
+
+Tại sao phải bình phương $z$ theo module N, đó là để chuẩn bị cho phép tính $m^{2^{i + 1}} \pmod{N}$ ở bước tiếp theo.
+
+Và tại $d_i = 0$ thì ta không thực hiện phếp tính vì khi này giá trị $m^{2{i}}$ không làm ảnh hưởng tới kết quả phép tính.
+
+Vì vậy nên khi bit $d_i = 1$, nó phải thực hiện phép nhân bổ sung nên sẽ tạo ra sự chênh lệch trong thời gian thực hiện phép tính còn khi $d_i = 0$ không cần thực hiện phép nhân bổ sung, vì vậy nên thời gian thực hiện sẽ diễn ra ngắn hơn! 
+
+Sau khi thực hiện tính mỗi phép nhân xong, ta so sánh $t_1$ và $T_1$
+
+Với:
+
+$t_1$: Thời gian dự đoán của từng thông điệp $m_i$, giả định $d_i$ = 1
+
+$T_1$: Thời gian thực tế của hệ thống mật mã giải mã
+
+Nếu $d_i = 1$, hệ thống mật mã thực hiện phép nhân $C \cdot z$ khiến cho $T_1$ bị ảnh hưởng theo $t_1$. Vậy nên giữa $t_1$ và $T_1$ có mối tương quan cao, mô phỏng theo chính xác những gì hệ thống mật mã đang thực hiện.
+
+Nếu $d_i = 0$, $t_1$ và $T_1$ độc lập với nhau và không có sự tương quan so sánh rõ ràng.
+
+Khi so sánh $t_1$ và $T_1$ hoàn tất ta sẽ suy ra được từng bit của d và tìm ra được d!
+
+Ở đây chúng ta có đặt ra hai câu hỏi.
+
+**1. Tại sao đổi với Timing Attacks ta cần thử với nhiều ciphertext khác nhau ?**: Chính là vì hệ thống mã hoá không giới hạn số lần giải mã, đồng thời việc thực hiện nhiều giải mã hơn thì chênh lệch thời gian của từng bit sẽ được xác định kỹ càng hơn từ đó có thể đưa ra một số d chính xác hơn.
+
+**2. Ta nên chọn thông điệp(message) như thế nào ?**:
+
+Thứ nhất là chọn $m < N$.
+
+Thứ hai là kiểm tra các đặc điểm của $m$ và thử nghiệm với các thông điệp có cấu trúc đặc biệt (ví dụ như các thông điệp có giá trị bit 1 tại các vị trí quan trọng trong khóa $d$.
+
+Thử ba là chọn $m$ sao cho giá trị $m^{d} \pmod{N}$ tạo ra các khác biệt rõ rệt trong các phép toán (chẳng hạn như chọn các giá trị $m$ sao cho khi thực hiện phép toán mũ sẽ khiến một số bit của $d$ thay đổi dễ dàng hơn).
+
+Ta có challenge như sau:
+
+```python
+from Crypto.PublicKey import RSA
+from Crypto.Util.number import getPrime, inverse
+import random
+
+# Tạo một khóa RSA với khóa riêng nhỏ d
+def khoa_rsa(bits=1024):
+    p = getPrime(bits // 2)
+    q = getPrime(bits // 2)
+    
+    # Tính n và phi(n)
+    n = p * q
+    phi_n = (p - 1) * (q - 1)
+    e = 65537  # Giá trị thường được chọn cho e
+    d = inverse(e, phi_n)
+    
+    # Đảm bảo d đủ nhỏ (nếu không sẽ không hợp lệ cho Weiner attack)
+    if d >= n // 2:
+        d = random.randint(1, n // 2)  # Giới hạn d nhỏ hơn n/2
+    
+    # Trả về khóa công khai (e, n) và khóa riêng (d)
+    return (e, n, d)
+
+# Tạo challenge với khóa RSA có d nhỏ
+def rsa_challenge():
+    e, n, d = khoa_rsa(bits=1024)
+    
+    # In ra khóa công khai để sử dụng trong challenge
+    print(f"Khóa công khai: (e={e}, n={n})")
+    
+    # Tạo thông điệp ngẫu nhiên 
+    ciphertext = [340567812360240512137833226672357117084722024613943503125843, 30961397952818271268472563258576978866974420779321329871889130621, 22634328374632864873648378563856438764385847356384]
+    print(f"Thông điệp: {m}")
+    return e, n, d, m
+
+# Tạo challenge và in ra khóa công khai
+e, n, d, m = rsa_challenge()
+
+# Tạo challenge
+print(f"\n=== CHALLENGE ===")
+print(f"Khóa công khai (e, n): ({e}, {n})")
+print(f"Thông điệp cần giải mã: {ciphertext}")
+```
+Bài giải cho challenge phía trên:
+```python
+import time
+from Crypto.Util.number import long_to_bytes
+# Tạo hàm tính C, thuật toán "Repeated Squaring"
+def repeated_squaring(m, d, n):
+    C = 1
+    z = m
+    while d:
+        d >>= 1
+        if d & 1:
+            C = (C * z) % n
+        z = (z * z) % n
+    return C
+# Tạo hàm tính thời gian giải mã ciphertext và trả về thời gian thực thi
+def RSA_decrypt(ciphertext, d, n):
+    start = time.time()
+    plaintext = repeated_squaring(ciphertext, d, n)
+    end = time.time()
+    return end - start
+```
+Tại đây, sử dụng binary search để tìm d
+
+Giả sử khoá d nằm trong khoảng [0; n - 1] (lower_bound, upper_bound)
+
+Sử dụng binary search để thu hẹp khoảng giá trị của d dựa trên thời gian giải mã ciphertext
+
+Nếu thời gian giải mã > 0.1s, hàm sẽ giảm upper_bound, còn nếu < 0.1s thì hàm tăng lower_bound, quá trình này nhằm khôi phục khoá riêng d
+```python
+
+def Kocher_Timing_Attack(ciphertext, n):
+    lower_bound = 0
+    upper_bound = n - 1
+    while lower_bound <= upper_bound:
+        d = (lower_bound + upper_bound) // 2
+        time_elapsed = RSA_decrypt(ciphertext, d, n)
+        # Phân tích thời gian trung bình để điều chỉnh upper_bound và lower_bound
+        if avg_time > 0.1:
+            upper_bound = d - 1
+        elif avg_time < 0.1:
+            lower_bound = d + 1
+        else:
+            return d  # Dừng lại khi tìm thấy d chính xác
+# Ví dụ sử dụng:
+n = 68591886373406102359935093451287663915214276998250804541059603814667838778649011715751231500875696597801497992611102354043220100576401835908053647949285396723536370551747427416369282636138603890883481866058750574927543233949147205279935298849065837404418400736910298342425733328624431620925159173947444517913
+e = 65537
+ciphertext = 340567812360240512137833226672357117084722024613943503125843
+
+# Tấn công để khôi phục khóa riêng d
+private_key = Kocher_Timing_Attack(ciphertext, n)
+print("The private key is:", private_key)
+
+# Kiểm tra tính đúng đắn của khóa riêng
+plaintext = repeated_squaring(ciphertext, private_key, n)
+print("The plaintext is:", plaintext)
+print(long_to_bytes(plaintext))  # Hiển thị bản rõ dưới dạng byte
+```
+
+
+
 
 **VỪA RỒI LÀ TÓM TẮT TOÀN BỘ LÝ THUYẾT VỀ RSA HỌC QUA 20 BÀI ĐẦU TIÊN CỦA RSA CHALLENGE THEO CÁCH HIỂU CỦA BẢN THÂN**.
 
