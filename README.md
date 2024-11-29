@@ -732,16 +732,67 @@ plaintext = repeated_squaring(ciphertext, private_key, n)
 print("The plaintext is:", plaintext)
 print(long_to_bytes(plaintext))  # Hiển thị bản rõ dưới dạng byte
 ```
+Trên thực tế, ta không nên sử dụng Kocher Timing Attack, vì nó có thể rất chậm và không đáng tin cậy, đồng thời có nhiều cách an toàn và hiệu quả hơn để thực hiện mã hóa và giải mã RSA. 
+Thay vào đó, ta nên sử dụng các thư viện RSA đã được thiết kế có khả năng chống Side-channel Attack, chẳng hạn như OpenSSL hoặc PyCryptodome.
 
-**3. Random Faults**
+**3. Random Faults**: Lỗ Hổng do Sử Dụng Định Lý Trung Quốc (CRT)
 
+Random faults trong RSA thường được hiểu là những lỗi ngẫu nhiên, xảy ra trong quá trình tính toán hoặc truyền tải thông tin trong hệ thống RSA, có thể dẫn đến các yếu tố thay đổi trong các bước mã hóa hoặc giải mã. Các lỗi ngẫu nhiên này có thể được tạo ra từ phần cứng, phần mềm hoặc môi trường vật lý mà hệ thống hoạt động
 
+Những lỗi ngẫu nhiên trong quá trình tính toán có thể làm sai lệch kết quả của những phép toán này. Tấn công Random Faults là một phương pháp khai thác sự thay đổi này, nhằm làm rối loạn quá trình tính toán của RSA, từ đó phá vỡ hệ thống bảo mật.
 
+Các kỹ thuật khai thác lỗi ngẫu nhiên này có thể được phân thành các loại chính:
 
+Fault Injection: Đây là quá trình tiêm lỗi vào hệ thống, có thể thông qua phần mềm hoặc phần cứng (ví dụ như thay đổi các bit trong bộ nhớ hoặc tạo ra các tín hiệu nhiễu trong vi mạch). Mục đích của phương pháp này là gây ra sự thay đổi ngẫu nhiên trong quá trình mã hóa hoặc giải mã.
 
+Differential Fault Analysis (DFA): Đây là một phương pháp tấn công sử dụng lỗi ngẫu nhiên để thu thập thông tin về khóa bí mật (private key). Kẻ tấn công sẽ gây ra lỗi trong quá trình giải mã, và qua đó có thể phân tích sự thay đổi của kết quả giải mã để rút ra thông tin về khóa riêng $d$
 
+Khai thác lỗ hổng do CRT (Chinese Remainder Theorem) thường thuộc loại tấn công Adaptive Chosen Ciphertext Attack (CCA2). Cụ thể, trong trường hợp của Random Faults trong RSA, khi sử dụng CRT để tăng tốc độ tính toán, một số lỗi ngẫu nhiên (do sự cố phần cứng hoặc can thiệp bên ngoài) có thể dẫn đến việc tính toán sai trong quá trình ký hoặc giải mã, làm lộ khóa riêng tư.
 
+Trong quá trình tạo chữ ký RSA sử dụng Định lý Trung Quốc (CRT) để tối ưu hóa tính toán, nếu một lỗi ngẫu nhiên xảy ra trong các phép toán, nó có thể dẫn đến một chữ ký không hợp lệ, điều này mở ra cơ hội cho tấn công từ bên ngoài. Cụ thể, giả sử, $C_p$ (chữ ký phần $p$)tính đúng, nhưng $C_q$ (chữ ký phần $q$) lại tính sai do lỗi ngẫu nhiên.
 
+**Mô Tả Tấn Công**
+
+Khi Bob sử dụng **CRT** để tính chữ ký trong RSA, thay vì tính trực tiếp $m^{d} \pmod{N}$ (với N là tích của hai số nguyên tố $p$ và $q$), Bob chia bài toán thành hai phần nhỏ hơn và tính theo module $p$ và $q$ như sau:
+
+$$
+\begin{cases}
+    s_p &= m^{d_p} + k_1 \cdot p \\
+    s_q &= m^{d_q} + k_2 \cdot q
+\end{cases}
+$$
+
+Trong đó: 
+
+$$
+\begin{cases}
+    d_p &= d \pmod{p - 1} \\
+    d_q &= d \pmod{q - 1}
+\end{cases}
+$$
+
+Khi gộp hai hệ trên vào theo **CRT**, ta sẽ có chữ ký: $s = m^{d} + k_3 \cdot p \cdot q$, bằng cách:
+
+Nếu như không có gì sai sót trong quá trình tính toán, thì trong quá trình xác minh chữ ký $s_p$ và $s_q$ ta sẽ được như sau:
+
+$$
+\begin{cases}
+    s^{e} \equiv m \pmod{p} \rightarrow s^{e} - m \equiv 0 \pmod{p} \\
+    s^{e} \equiv m \pmod{q} \rightarrow s^{e} - m \equiv 0 \pmod{q}
+\end{cases}
+$$
+
+$\rightarrow s^{e} - m = k_3 \cdot p \cdot q$
+                 
+Như vậy thì, chữ ký $s^{e}$ phù hợp với m theo module $p$ và $q$, có nghĩa là $s^{e} - m$ chính là bội số chung của $p$ và $q$, khiến cho $s^{e} - m$ cũng được tính là một bội số của module $N$
+
+Tức: $Gcd(s^{e} - m, N) = N$
+
+Vậy thì, lỗi xảy ra khi chỉ cần $s_p$ hay $s_q$ lệch một vài bit thì ngay lập tức:
+
+$$ 
+    s^{e} \not\equiv m \pmod{p} \vee s^{e} \not\equiv m \pmod{q}
+$$
 
 **VỪA RỒI LÀ TÓM TẮT TOÀN BỘ LÝ THUYẾT VỀ RSA HỌC QUA 20 BÀI ĐẦU TIÊN CỦA RSA CHALLENGE THEO CÁCH HIỂU CỦA BẢN THÂN**.
 
