@@ -784,15 +784,115 @@ $$
 
 $\rightarrow s^{e} - m = k_3 \cdot p \cdot q$
                  
-Như vậy thì, chữ ký $s^{e}$ phù hợp với m theo module $p$ và $q$, có nghĩa là $s^{e} - m$ chính là bội số chung của $p$ và $q$, khiến cho $s^{e} - m$ cũng được tính là một bội số của module $N$
+Như vậy thì, chữ ký $s^{e}$ phù hợp với m theo module $p$ và $q$, có nghĩa là $s^{e} - m$ chính là bội số chung của $p$ và $q$, khiến cho $s^{e} - m$ cũng được tính là một bội số của module $N$.
 
 Tức: $Gcd(s^{e} - m, N) = N$
 
 Vậy thì, lỗi xảy ra khi chỉ cần $s_p$ hay $s_q$ lệch một vài bit thì ngay lập tức:
 
 $$ 
-    s^{e} \not\equiv m \pmod{p} \vee s^{e} \not\equiv m \pmod{q}
+            s^{e} \not\equiv m \pmod{p} \vee s^{e} \not\equiv m \pmod{q}
+\Rightarrow s^{e} - m = k_3 \cdot q \vee s^{e} - m = k_3 \cdot p 
 $$
+
+Có thể hiểu, khi đó chữ ký của Bob chỉ phù hợp với m theo module $p$ hoặc $q$. Vậy nên khi đó $s^{e} - m$ là bội của $p$ hoặc $q$, điều này đồng nghĩa với việc, nếu ta tính $Gcd(s^{e} - m, N) = p \vee Gcd(s^{e} - m, N) = q$.
+
+Từ đây ta có thể khai thác được một trong hai số nguyên tố cấu thành nên module $N$.
+
+Tuy nhiên, phương thức tấn công này chỉ có tác dụng khi kẻ tấn công biết trước plaintext m (chưa qua Random Padding).
+
+Sau đây là challenge:
+
+```python
+from Crypto.Util.number import getPrime, inverse, bytes_to_long
+from sympy import mod_inverse
+# Khởi tạo hệ thống RSA với các số nguyên tố p, q
+p, q = getPrime(1024), getPrime(1024)
+e = 65537
+n = p * q  # modulus
+flag = b'{r4nd0m_f4ult_l0l}'
+d = inverse(e, (p - 1) * (q - 1))  # khóa bí mật
+c = pow(bytes_to_long(flag), e, n)  # mã hóa thông điệp bằng RSA
+
+print("n =", n)
+print("e =", e)
+print("c =", c)
+
+# Định lý Trung Quốc (Chinese Remainder Theorem)
+def CRT(remainders, module):
+    M = 1
+    for mod in module:
+        M *= mod
+    result = 0
+    for i in range(len(module)):
+        Mi = M // module[i]
+        yi = mod_inverse(Mi, module[i])  # Tính nghịch đảo modular
+        result += remainders[i] * Mi * yi
+    return result % M
+
+# Hàm ký
+def sign(m, fault=False):
+    d_p = inverse(e, p - 1)
+    d_q = inverse(e, q - 1)
+    s_p = pow(m, dp, p)
+    s_q = pow(m, dq, q)
+    
+    # Nếu có lỗi ngẫu nhiên, làm sai một phần trong chữ ký
+    if fault:
+        s_q += 1  # Giới thiệu lỗi vào C_q
+    
+    s = CRT([s_p, s_q], [p, q])
+    return s
+
+# Vòng lặp nhận đầu vào và ký chữ ký có lỗi
+while True:
+    m = int(input("Nhập m = "))
+    print("Chữ ký: ", sign(m, True))  # Chữ ký với lỗi ngẫu nhiên
+```
+Và sau đây là bài giải
+```python
+from Crypto.Util.number import GCD, inverse, long_to_bytes
+
+# Các giá trị cần thiết (thay thế bằng giá trị từ challenge)
+n = 13298815912594907741162789273924783694427810137974964685074065570038696990765058272308290777219436648571009499441775367039733443066748334515060312903284820049512007113692824230891260174629418408254875214033940930179284430333304255372970029725056730672656166578002757131220490186290364867752945521064208967063881391140364524364724173801518407379066129468674250369457241805906037952941951460110467465998029575187817251676275381101601190180674947687794286231391506621111572723056387802463361411160975223513069695639884475231118635852106800547254569480322149088832642164396173004926199658708114441911817634227224392320617
+e = 65537
+m = 43232543534
+c_fault = 8637912216348962969690978514982310068686977432660946987016530628036777297501321811206184982493081790639741799171802822361150051531239276699146771914353878603787713587274713862050159070174002966774873947343542272889645509119277986327812409983999756778186164003842674110093128362782802918544479855013150874682735759853325574767440022421286146685321742628365943688529997004395759015878492910565637592442919870325893520513350059988206935427650243892564168209045232415100913728412819345660212613729302522707335607868786090816948863421267966763414979765894964550333751317460687027949996433347236779104289896745056708451948
+
+# Tính C^e - m mod n
+M_computed = pow(c_fault, e, n)
+
+# Tính GCD(n, C^e - m)
+factor = GCD(n, M_computed - m)
+
+if factor > 1:
+    print(f"Thừa số tìm được: {factor}")
+    p = factor
+    q = n // p
+    print(f"p = {p}")
+    print(f"q = {q}")
+
+    # Xây dựng lại khóa bí mật
+    phi = (p - 1) * (q - 1)
+    d = inverse(e, phi)
+    print(f"Khóa bí mật (d) = {d}")
+
+    # Giải mã flag nếu cần
+    c = 9530889903254179857834114277683181648032972928254792234079867087380240581939753035269354834250142164060984745000659971696929642299049969220184540171449399895563314103335599945485271868736726880098751108952977580443772243911572560989453490006829733057454211222115563094975858376389740376110775904859065319058247144268492914402194659004465050381536534785098903805524818247538320760070768858774477480463801728116568061455577919992389380586475318869985063460662120788763395874249527686939553973326481725189980178660586464474540374711242650002391839204036969002996006568291949126223848089821449327236325616691379563539936
+    flag = pow(c, d, n)
+    print("Flag:", long_to_bytes(flag))
+else:
+    print("Không tìm được thừa số!")
+```
+Biện Pháp Phòng Ngừa:
+
+Kiểm tra chữ ký: Trước khi gửi chữ ký ra ngoài, Bob có thể kiểm tra lại chữ ký của mình để chắc chắn rằng không có lỗi ngẫu nhiên xảy ra trong quá trình tính toán.
+
+Sử dụng padding ngẫu nhiên: Việc thêm padding ngẫu nhiên vào thông điệp trước khi ký sẽ giúp bảo vệ hệ thống khỏi việc kẻ tấn công khai thác lỗi ngẫu nhiên, vì thông điệp m sẽ thay đổi trong mỗi lần ký
+
+**4. Bleichenbacher's Attack on PKCS#1
+
+
 
 **VỪA RỒI LÀ TÓM TẮT TOÀN BỘ LÝ THUYẾT VỀ RSA HỌC QUA 20 BÀI ĐẦU TIÊN CỦA RSA CHALLENGE THEO CÁCH HIỂU CỦA BẢN THÂN**.
 
