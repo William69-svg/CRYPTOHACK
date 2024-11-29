@@ -890,11 +890,13 @@ Kiểm tra chữ ký: Trước khi gửi chữ ký ra ngoài, Bob có thể ki�
 
 Sử dụng padding ngẫu nhiên: Việc thêm padding ngẫu nhiên vào thông điệp trước khi ký sẽ giúp bảo vệ hệ thống khỏi việc kẻ tấn công khai thác lỗi ngẫu nhiên, vì thông điệp m sẽ thay đổi trong mỗi lần ký
 
-**4. Bleichenbacher's Attack on PKCS#1
+**4. Bleichenbacher's Attack on PKCS#1**
 
 
 
 **VỪA RỒI LÀ TÓM TẮT TOÀN BỘ LÝ THUYẾT VỀ RSA HỌC QUA 20 BÀI ĐẦU TIÊN CỦA RSA CHALLENGE THEO CÁCH HIỂU CỦA BẢN THÂN**.
+
+
 
 
 
