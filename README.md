@@ -496,7 +496,7 @@ C3 = 1881365963625
 e = 3
 
 # Hàm CRT (Chinese Remainder Theorem)
-def chinese_remainder_theorem(remainders, module):
+def CRT(remainders, module):
     M = 1
     for mod in module:
         M *= mod
@@ -510,10 +510,10 @@ def chinese_remainder_theorem(remainders, module):
 # Áp dụng CRT
 module = [N1, N2, N3]
 ciphertexts = [C1, C2, C3]
-combined_cubic = chinese_remainder_theorem(ciphertexts, module)
+combined = CRT(ciphertexts, module)
 
 # Tìm căn bậc ba nguyên của kết quả từ CRT
-m, is_perfect = integer_nthroot(combined_cubic, e)
+m, is_perfect = integer_nthroot(combined, e)
 if is_perfect:
     print(f"Thông điệp đã giải mã: {m}")
 else:
