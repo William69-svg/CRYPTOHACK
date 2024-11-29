@@ -267,7 +267,7 @@ print(m)
 
 ### III. Low Private Exponent (Số mũ riêng d nhỏ)
 
-**WEINER ATTACK**
+**WIENER ATTACK**
 
 Cho N = $p \cdot q$
 
@@ -320,15 +320,12 @@ def khoa_rsa(bits=1024):
     # Tính n và phi(n)
     n = p * q
     phi_n = (p - 1) * (q - 1)
-    e = 65537  # Giá trị thường được chọn cho e
+    e = 65537
     d = inverse(e, phi_n)
-    
     # Đảm bảo d đủ nhỏ (nếu không sẽ không hợp lệ cho Weiner attack)
-    if d >= n // 2:
-        d = random.randint(1, n // 2)  # Giới hạn d nhỏ hơn n/2
-    
+    if d < (1/3)* (n ** (1/4)):
     # Trả về khóa công khai (e, n) và khóa riêng (d)
-    return (e, n, d)
+        return (e, n, d)
 
 # Tạo challenge với khóa RSA có d nhỏ
 def rsa_challenge():
@@ -357,7 +354,7 @@ Ta có bài giải bằng hai cách như sau:
 ```python
 from sympy import continued_fraction, continued_fraction_convergents, Rational
 from Crypto.Util.number import long_to_bytes
-def weiner_attack(e, n):
+def wiener_attack(e, n):
     # Tính phân số liên tục của e/n
     cf = continued_fraction(Rational(e, n))
     convergents = continued_fraction_convergents(cf)
@@ -398,8 +395,9 @@ Và việc giải phương trình bậc 2 trên sử dụng delta = $b^{2} - 4 \
 
 Việc còn lại là tính N bằng p và q vừa tìm, nếu như chúng thoả toàn bộ điều kiện nghĩa là d chính xác.
 ```python
-e, n, d, m = rsa_challenge()
-d_found = weiner_attack(e, n)
+n = 100300337667125211384814961498385747916262207042393747307781775041841729627991753813025308949465695213432515654049618772493432046900250749616497500259572352487923195374326860250635928985679574649936822337361350162334899116009299616578468148993741745022128162404908020544314122221881153379456741853336581541683
+e = 65537
+d_found = wiener_attack(e, n)
 if d_found:
     print(f"Khóa riêng d tìm thấy: {d_found}")
     print(f"Khóa riêng thực tế: {d}")
@@ -411,18 +409,19 @@ if d_found:
 else:
     print("Không thể tìm thấy khóa riêng d.")
 ```
-**Hoặc ta có thể sử dụng thư viện Oweiner như một tool để giải nhanh hơn**
+**Hoặc ta có thể sử dụng thư viện Owiener như một tool để giải nhanh hơn**
 ```python
-import oweiner
+import owiener
 from Crypto.Util.number import bytes_to_long
-e, n, d, m = rsa_challenge()
-d_found = oweiner.attack(e, n)
+n = 83683933725963697774642197417455080110119746479900456011241186890282779653911901207907421456724308436788981656329779711794412935691627010837168641321633118559815642375093711414267116664873546099584844994790061438286731227165312963077819598764901582045554060551675181453089310394700533016708464974967378662049
+e = 65537
+d_found = owiener.attack(e, n)
 if d_found:
     print(f"Khóa riêng d tìm được: {d_found}")
     print(f"Khóa riêng d thực tế: {d_actual}")
     print(f"Khóa tìm được {'đúng' if d_found == d_actual else 'sai'}!")
 else:
-    print("Không thể tìm thấy d bằng Weiner Attack.")
+    print("Không thể tìm thấy d bằng Wiener Attack.")
 ```
 **Thông điệp gốc: b'KCSC{5m4LL_w31n3r_5m4LL_xd}'**
 
