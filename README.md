@@ -693,6 +693,13 @@ print("The plaintext is:", plaintext)
 print(long_to_bytes(plaintext))  # Hiển thị bản rõ dưới dạng byte
 ```
 
+**3. Random Faults**
+
+
+
+
+
+
 
 
 
