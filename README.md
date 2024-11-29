@@ -429,7 +429,7 @@ else:
 ```python
 import owiener
 from Crypto.Util.number import bytes_to_long
-n = 83683933725963697774642197417455080110119746479900456011241186890282779653911901207907421456724308436788981656329779711794412935691627010837168641321633118559815642375093711414267116664873546099584844994790061438286731227165312963077819598764901582045554060551675181453089310394700533016708464974967378662049
+n = 100300337667125211384814961498385747916262207042393747307781775041841729627991753813025308949465695213432515654049618772493432046900250749616497500259572352487923195374326860250635928985679574649936822337361350162334899116009299616578468148993741745022128162404908020544314122221881153379456741853336581541683
 e = 65537
 d_found = owiener.attack(e, n)
 if d_found:
@@ -480,6 +480,46 @@ Và ta có thể tính $M = (\sum_{i = 1}^{e} r_i * N_i * M_i \pmod{N}$
 VỚI MỖI LẦN THỰC HIỆN TA LÀM VỚI BỘ 3 SỐ ĐỂ THOẢ ĐIỀU KIỆN BAN ĐẦU
 
 Khi đó $m < n_i$ nên $m^{3} < N$ tìm m là thông điệp gốc ta chỉ cần lấy $\sqrt[3]{M}$
+
+Mô tả thuật toán Định lý dư Trung Quốc và Ứng dụng vào Hastad's Broadcast Attacks:
+
+```python
+from sympy import mod_inverse, integer_nthroot
+
+# Dữ liệu từ bài toán
+N1 = 15184735897616140463
+N2 = 15734180812753971107
+N3 = 14730353456447021839
+C1 = 1881365963625
+C2 = 1881365963625
+C3 = 1881365963625
+e = 3
+
+# Hàm CRT (Chinese Remainder Theorem)
+def chinese_remainder_theorem(remainders, module):
+    M = 1
+    for mod in module:
+        M *= mod
+    result = 0
+    for i in range(len(module)):
+        Mi = M // module[i]
+        yi = mod_inverse(Mi, module[i])  # Tính nghịch đảo modular
+        result += remainders[i] * Mi * yi
+    return result % M
+
+# Áp dụng CRT
+module = [N1, N2, N3]
+ciphertexts = [C1, C2, C3]
+combined_cubic = chinese_remainder_theorem(ciphertexts, module)
+
+# Tìm căn bậc ba nguyên của kết quả từ CRT
+m, is_perfect = integer_nthroot(combined_cubic, e)
+if is_perfect:
+    print(f"Thông điệp đã giải mã: {m}")
+else:
+    print("Không tìm thấy căn bậc ba nguyên!")
+```
+**m = 12345**
 
 Định lý Håstad nhấn mạnh rằng việc sử dụng cùng một thông điệp với số mũ công khai nhỏ e trong RSA là không an toàn. Để ngăn chặn tấn công này:
 
