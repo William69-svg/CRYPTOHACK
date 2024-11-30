@@ -936,96 +936,86 @@ $\cdot$ Nếu phản hồi không hợp lệ: Marvin sẽ thử với một giá
 Sau đây là một hệ thống kiểm tra theo PKCS#1 v1.5 Padding:
 ```python
 
-from Crypto.Util.number import *
-import os
+from Crypto.PublicKey import RSA
+from Crypto.Util.Padding import pad
+from Crypto.Cipher import PKCS1_OAEP
+import random
+import binascii
 
-# Sinh các tham số RSA
-e = 65537
-p = getPrime(512)
-q = getPrime(512)
-n = p * q
-phi = (p - 1) * (q - 1)
-d = inverse(e, phi)
+# Giả sử đây là thông điệp gốc
+message = b'KCSC{p4dd1n9_1s_fUn!}'
 
-# Hàm mã hóa RSA
-def encrypt(msg):
-    m = bytes_to_long(msg)
-    return pow(m, e, n)
+# Giả sử chúng ta có một RSA key pair
+key = RSA.generate(2048)
+public_key = key.publickey()
+private_key = key
 
-# Hàm giải mã RSA
-def decrypt(ct):
-    return pow(ct, d, n)
+# Mã hóa thông điệp với PKCS1
+cipher = PKCS1_OAEP.new(public_key)
+ciphertext = cipher.encrypt(message)
 
-# Hàm kiểm tra tính hợp lệ của PKCS#1 v1.5 Padding
-def pkcs1_oracle(ciphertext):
-    plaintext = decrypt(ciphertext)
-    plaintext_bytes = long_to_bytes(plaintext, length=(n.bit_length() + 7) // 8)
+# In ra ciphertext đã mã hóa
+print("Ciphertext:", binascii.hexlify(ciphertext))
 
-    # Kiểm tra padding PKCS#1 v1.5
-    if plaintext_bytes.startswith(b'\x02') and b'\x00' in plaintext_bytes[2:]:
-        return True  # Padding hợp lệ
-    return False  # Padding không hợp lệ
-
-# Ví dụ: Kiểm tra padding
-if __name__ == "__main__":
-    # Tạo thông điệp
-    message = b"This is a secret message"
-    padded_message = b'\x02' + os.urandom(100) + b'\x00' + message
-
-    # Mã hóa
-    ciphertext = encrypt(padded_message)
-    print(f"Ciphertext: {ciphertext}")
-
-    # Kiểm tra với Oracle
-    result = pkcs1_oracle(ciphertext)
-    if result:
-        print("Padding hợp lệ!")
-    else:
-        print("Padding không hợp lệ!")
+# Mô phỏng hệ thống kiểm tra padding (oracle)
+def check_padding(ciphertext):
+    try:
+        # Thử giải mã và kiểm tra padding
+        decrypted_message = cipher.decrypt(ciphertext)
+        if decrypted_message.startswith(b'\x02') and b'\x00' in decrypted_message:
+            return True  # Padding hợp lệ
+        else:
+            return False  # Padding không hợp lệ
+    except ValueError:
+        return False  # Nếu không thể giải mã được, padding không hợp lệ
 ```
 Để tấn công vào hệ thống kiểm tra PKCS#1 v1.5 padding như đã xây dựng trong ví dụ trên, chúng ta sẽ thực hiện một Bleichenbacher Attack. Mục tiêu của cuộc tấn công này là lợi dụng thông báo lỗi về tính hợp lệ của padding để dần dần tìm ra thông điệp ban đầu mà không cần biết khóa riêng
 ```python
-# Tấn công Bleichenbacher để giải mã thông điệp
-lb = 0
-ub = n
-r = 1  # Giá trị r được thử nghiệm
-
-# Mô phỏng việc thực hiện tấn công
-for i in range(1000):  # Thử nghiệm nhiều lần để thu hẹp phạm vi
-    print(f"Vòng lặp {i+1}:")
-    
-    # Tính toán C' = r * C mod N
-    c_prime = (r * ciphertext) % n
-    # Kiểm tra phản hồi từ oracle
-    if pkcs1_oracle(c_prime):
-        ub = (ub + lb) // 2  # Nếu padding hợp lệ, thu hẹp phạm vi
-        print("Padding hợp lệ.")
-    else:
-        lb = (ub + lb) // 2  # Nếu padding không hợp lệ, điều chỉnh phạm vi
-        print("Padding không hợp lệ.")
-def check_decrypted_message(value):
-    decrypted = long_to_bytes(value, length=(n.bit_length() + 7) // 8)
-
-    # Kiểm tra xem thông điệp có padding hợp lệ không
-    if decrypted.startswith(b'\x02') and b'\x00' in decrypted[2:]:
-        return decrypted
-    return None
-    # Giảm phạm vi tìm kiếm
-    if (ub - lb) < 65537:
-        print(f"Kết quả cuối cùng: lb = {lb}, ub = {ub}")
-     # Giải mã và kiểm tra kết quả
-    decrypted_message = check_decrypted_message(lb)
-    if decrypted_message:
-        print(f"Giải mã thành công: {decrypted_message[2:].decode()}") #Lấy từ bit thứ 2 vì nó là thông điệp ban đầu, và decode nó.
-    else:
-        decrypted_message = check_decrypted_message(ub)
-        if decrypted_message:
-            print(f"Giải mã thành công: {decrypted_message[2:].decode()}") #Tương tự bên trên
+def bleichenbacher_attack(ct, oracle):
+    lb = 0
+    ub = public_key.n
+    for i in range(100):  # Giới hạn số lần thử
+        r = random.randint(1, public_key.n)
+        new_ct = (pow(r, 1, public_key.n) * ct) % public_key.n
+        
+        # Kiểm tra padding hợp lệ
+        if oracle(new_ct):
+            ub = (ub + lb) // 2
         else:
-            print("Không thể giải mã thông điệp.")
-```
+            lb = (ub + lb) // 2
+        
+        if (ub - lb) < 65537:
+            return ub  # Trả về kết quả gần đúng
 
-**5. Parity Oracle(LSB)**
+# Thực hiện tấn công
+recovered_message = bleichenbacher_attack(ciphertext, check_padding)
+print("Recovered Message:", recovered_message)
+```
+Như vậy là đã hoàn thành mô phỏng một cuộc tấn công vào PKCS #1 v1.5 với message là KCSC{p4dd1n9_1s_fUn!}
+
+**5. Parity Oracle Attack(LSB)**
+
+Tấn công Parity Oracle là một dạng của tấn công ciphertext đã chọn có tính thích ứng (CCA2), khai thác các hệ thống cung cấp thông tin về tính chẵn lẻ (parity) của bản rõ sau khi giải mã mà không kiểm tra tính hợp lệ của ciphertext.
+
+Tấn công này đặc biệt nhắm đến các hệ thống mà khi giải mã, chúng trả về thông tin về tính chất (ví dụ như tính chẵn hay lẻ) của thông điệp sau giải mã. Điều này xảy ra khi các hệ thống bị lỗi trong cách xử lý hoặc xác thực thông điệp, hoặc khi hệ thống tiết lộ thông tin về tính chẵn lẻ của bản rõ mà không bảo vệ an toàn.
+
+Các Khái Niệm Cơ Bản:
+
+1. Parity (Tính chẵn lẻ): Trong ngữ cảnh mã hóa, "parity" đề cập đến việc một số có phải là số chẵn hay không. Khi một thông điệp được giải mã, hệ thống có thể tiết lộ xem giá trị của thông điệp (hoặc một phần của nó, ví dụ như một byte cụ thể) là chẵn hay lẻ.
+2. Oracle: Trong mật mã học, "oracle" chỉ hệ thống cung cấp thông tin về quá trình mã hóa hoặc giải mã, thường giúp kẻ tấn công thao túng ciphertext. Trong tấn công Parity Oracle, oracle sẽ tiết lộ thông tin về tính chẵn lẻ của thông điệp sau khi giải mã.
+
+Cách Thức Hoạt Động của Tấn Công Parity Oracle:
+
+1. Mục Tiêu: Kẻ tấn công muốn giải mã một ciphertext $C$
+2. Truy Cập Oracle: Kẻ tấn công gửi một ciphertext đã chọn $C'$ đến hệ thống và yêu cầu kiểm tra xem bản rõ sau khi giải mã có tính chẵn hay lẻ.
+3. Phản Hồi Oracle: Hệ thống sau đó sẽ trả về thông tin về tính chẵn lẻ của thông điệp đã giải mã.
+4. Bản Rõ: Bằng cách gửi đi các ciphertexts giả và quan sát phản hồi của oracle, kẻ tấn công dần dần có thể suy luận ra bản rõ của thông điệp ban đầu mà không cần biết khóa giải mã.
+
+Điều Kiện để Tấn Công Parity Oracle Thành Công:
+
+$\cdot$ Thông tin chẵn lẻ.
+
+$\cdot$ Thiếu Kiểm Tra Tính Hợp Lệ: Nếu hệ thống không kiểm tra đúng tính hợp lệ của thông điệp sau khi giải mã, kẻ tấn công có thể thử nghiệm với nhiều ciphertexts và nhận được phản hồi từ hệ thống.
 
 
 
