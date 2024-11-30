@@ -892,6 +892,139 @@ Sử dụng padding ngẫu nhiên: Việc thêm padding ngẫu nhiên vào thôn
 
 **4. Bleichenbacher's Attack on PKCS#1(MSB)** 
 
+Tấn công Bleichenbacher là một trong những tấn công nổi tiếng nhất đối với các hệ thống mã hóa RSA sử dụng chuẩn PKCS #1 (Public Key Cryptography Standards #1), đặc biệt là khi sử dụng RSA để mã hóa các thông điệp (chẳng hạn trong SSL/TLS hoặc chữ ký số). Tấn công này được phát hiện bởi Daniel Bleichenbacher vào năm 1998 và có khả năng khai thác các lỗ hổng trong việc triển khai PKCS #1 v1.5 (một tiêu chuẩn cũ cho việc mã hóa RSA).
+
+Để hiểu tấn công này, ta cần hiểu những khái niệm sau:
+
+1. PKCS #1 v1.5 Padding: PKCS #1 v1.5 là một kỹ thuật "padding" (đệm) được sử dụng trong quá trình mã hóa với RSA. Khi một thông điệp được mã hóa bằng RSA, nó phải có một kích thước nhỏ hơn kích thước của module $N$. Một thông điệp $M$ được mã hoá dưới dạng $C = M^{e} \pmod{N}$, với $M$ là thông điệp được đệm theo chuẩn PKCS#1 v1.5. Tuy nhiên, vấn đề là nếu không có một cơ chế xác thực mạnh mẽ, kẻ tấn công có thể tận dụng lỗ hổng trong cách mà padding được thực hiện để tấn công hệ thống.
+2. Tấn Công Bleichenbacher: Tấn công Bleichenbacher là một kiểu tấn công adaptive chosen ciphertext attack (CCA2), nơi kẻ tấn công có thể "chọn" các thông điệp mã hóa và gửi chúng tới hệ thống để nhận phản hồi, từ đó suy luận ra thông tin về khóa bí mật hoặc thông điệp gốc.
+
+**Các bước trong tấn công**:
+1. Thu thập các thông điệp mã hóa: Kẻ tấn công có thể thu thập được một số thông điệp mã hóa từ hệ thống (chẳng hạn là những thông điệp đã được mã hóa trong quá trình giao tiếp).
+2. Gửi các thông điệp mã hóa giả mạo: Kẻ tấn công sẽ gửi một thông điệp mã hóa giả mạo $C'$ tới hệ thống và yêu cầu kiểm tra xem thông điệp này có hợp lệ hay không.
+3. Phản hồi của hệ thống: Hệ thống sẽ phản hồi cho kẻ tấn công biết liệu thông điệp giả mạo $C'$ có hợp lệ hay không. Phản hồi này sẽ cung cấp thông tin về việc liệu padding của thông điệp có đúng hay không, từ đó giúp kẻ tấn công điều chỉnh các thử nghiệm tiếp theo.
+4. Dự đoán thông điệp gốc: Với mỗi phản hồi, kẻ tấn công có thể làm suy giảm không gian tìm kiếm, dẫn đến việc dần dần xác định được thông điệp gốc hoặc khóa bí mật.
+
+**Giải thích Bleichenbacher's Attack trên PKCS#1**
+
+Khi mã hoá một thông điệp $M$, nó được "padding" để đạt độ dài $n$ bits, bằng cách thêm:
+
+$02 || Random Padding || 00 || M$
+
+$\cdot$ 02: Tiền tố đặc biệt (16 bits) chỉ định rằng padding đã được thêm.
+
+$\cdot$ Random Padding: Một chuỗi các bit ngẫu nhiên.
+
+$\cdot$ 00: Dấu phân cách.
+
+$\cdot M: Thông điệp thực tế.
+
+Kẻ tấn công Marvin thực hiện như sau:
+
+1. **Chọn ngẫu nhiên sổ r**: Marvin chọn một số $r \in \mathbb{Z_N}^*$
+2. **Tạo ciphertext giả $C'$: Tính: $C' = r \cdot C \pmod{N}$
+3. **Sau khi gửi $C'$ tới hệ thống, kiểm tra xem ciphertext giả có hợp lệ không dựa vào phản hồi của hệ thống, phản hồi này sẽ cho phép Marvin suy ra thông điệp về plaintext M ban đầu
+
+Phản hồi của hệ thống:
+
+$\cdot$ Nếu phản hồi hợp lệ: hệ thống sẽ xử lý thành công và phản hồi cho Marvin (hoặc không trả lỗi gì). Điều này giúp Marvin biết rằng $MSB_16((r \cdot M) \pmod{N}) = 0x02$. Bit cao nhất của $M' = (r \cdot N) \pmod{N}$ là hợp lệ (0x02)
+
+$\cdot$ Nếu phản hồi không hợp lệ: Marvin sẽ thử với một giá trị $r$ khác và lặp lại quá trình.
+
+4. Marvin sử dụng thông tin này để lặp lại quá trình cho đến khi xác định được $M$ ban đầu.
+
+Sau đây là một hệ thống kiểm tra theo PKCS#1 v1.5 Padding:
+```python
+
+from Crypto.Util.number import *
+import os
+
+# Sinh các tham số RSA
+e = 65537
+p = getPrime(512)
+q = getPrime(512)
+n = p * q
+phi = (p - 1) * (q - 1)
+d = inverse(e, phi)
+
+# Hàm mã hóa RSA
+def encrypt(msg):
+    m = bytes_to_long(msg)
+    return pow(m, e, n)
+
+# Hàm giải mã RSA
+def decrypt(ct):
+    return pow(ct, d, n)
+
+# Hàm kiểm tra tính hợp lệ của PKCS#1 v1.5 Padding
+def pkcs1_oracle(ciphertext):
+    plaintext = decrypt(ciphertext)
+    plaintext_bytes = long_to_bytes(plaintext, length=(n.bit_length() + 7) // 8)
+
+    # Kiểm tra padding PKCS#1 v1.5
+    if plaintext_bytes.startswith(b'\x02') and b'\x00' in plaintext_bytes[2:]:
+        return True  # Padding hợp lệ
+    return False  # Padding không hợp lệ
+
+# Ví dụ: Kiểm tra padding
+if __name__ == "__main__":
+    # Tạo thông điệp
+    message = b"This is a secret message"
+    padded_message = b'\x02' + os.urandom(100) + b'\x00' + message
+
+    # Mã hóa
+    ciphertext = encrypt(padded_message)
+    print(f"Ciphertext: {ciphertext}")
+
+    # Kiểm tra với Oracle
+    result = pkcs1_oracle(ciphertext)
+    if result:
+        print("Padding hợp lệ!")
+    else:
+        print("Padding không hợp lệ!")
+```
+Để tấn công vào hệ thống kiểm tra PKCS#1 v1.5 padding như đã xây dựng trong ví dụ trên, chúng ta sẽ thực hiện một Bleichenbacher Attack. Mục tiêu của cuộc tấn công này là lợi dụng thông báo lỗi về tính hợp lệ của padding để dần dần tìm ra thông điệp ban đầu mà không cần biết khóa riêng
+```python
+# Tấn công Bleichenbacher để giải mã thông điệp
+lb = 0
+ub = n
+r = 1  # Giá trị r được thử nghiệm
+
+# Mô phỏng việc thực hiện tấn công
+for i in range(1000):  # Thử nghiệm nhiều lần để thu hẹp phạm vi
+    print(f"Vòng lặp {i+1}:")
+    
+    # Tính toán C' = r * C mod N
+    c_prime = (r * ciphertext) % n
+    # Kiểm tra phản hồi từ oracle
+    if pkcs1_oracle(c_prime):
+        ub = (ub + lb) // 2  # Nếu padding hợp lệ, thu hẹp phạm vi
+        print("Padding hợp lệ.")
+    else:
+        lb = (ub + lb) // 2  # Nếu padding không hợp lệ, điều chỉnh phạm vi
+        print("Padding không hợp lệ.")
+def check_decrypted_message(value):
+    decrypted = long_to_bytes(value, length=(n.bit_length() + 7) // 8)
+
+    # Kiểm tra xem thông điệp có padding hợp lệ không
+    if decrypted.startswith(b'\x02') and b'\x00' in decrypted[2:]:
+        return decrypted
+    return None
+    # Giảm phạm vi tìm kiếm
+    if (ub - lb) < 65537:
+        print(f"Kết quả cuối cùng: lb = {lb}, ub = {ub}")
+     # Giải mã và kiểm tra kết quả
+    decrypted_message = check_decrypted_message(lb)
+    if decrypted_message:
+        print(f"Giải mã thành công: {decrypted_message[2:].decode()}") #Lấy từ bit thứ 2 vì nó là thông điệp ban đầu, và decode nó.
+    else:
+        decrypted_message = check_decrypted_message(ub)
+        if decrypted_message:
+            print(f"Giải mã thành công: {decrypted_message[2:].decode()}") #Tương tự bên trên
+        else:
+            print("Không thể giải mã thông điệp.")
+```
+
 **5. Parity Oracle(LSB)**
 
 
