@@ -289,8 +289,11 @@ prime_min = min(factor.keys())
 phi = (prime_max - 1) * (prime_min - 1)
 p = prime_factor[0]
 phi = (p - 1)*p
+```
+phi = (p - 1)*p có công thức này là vì n chính là một số nguyên tố, chứ không được cấu thành từ p và q hay nhiều số nguyên tố khác
+```python
 d = inverse (e, phi)
-pt = pow (ct, d, n)
+pt = pow (ct, d, n) 
 decrypted = long_to_bytes(pt) 
 print(decrypted)
 decrypted_string = decrypted.decode('utf-8', errors='ignore')
