@@ -1019,20 +1019,97 @@ $\cdot$ Thiếu Kiểm Tra Tính Hợp Lệ: Nếu hệ thống không kiểm tr
 
 Điểm khác biệt MSB với LSB:
 
-Bleichenbacher Attack tập trung vào MSB:
+Bleichenbacher Attack tập trung vào MSB: Phản hồi từ Oracle giúp xác định xem plaintext giải mã có khớp định dạng đầu tiên hay không.
 
-Phản hồi từ Oracle giúp xác định xem plaintext giải mã có khớp định dạng đầu tiên hay không.
+LSB Oracle Attack tập trung vào các bit cuối cùng: Khai thác Oracle để thu hẹp dần các bit từ phía bên phải của plaintext.
 
-LSB Oracle Attack tập trung vào các bit cuối cùng:
+Ta có challenge, là một server oracle như sau:
 
-Khai thác Oracle để thu hẹp dần các bit từ phía bên phải của plaintext.
+```python
+from Crypto.Util.number import *
+from os import urandom
 
-Ta có challenge như sau:
+flag = (30961397952826794826368629267252806679740709656474098228292952445)
+p, q = getPrime(512), getPrime(512)
+n = p * q
+e = 0x10001
+d = inverse(e, (p-1)*(q-1))
+assert flag < n
+ct = pow(flag, e, n)
 
+print(f"{n = }")
+print(f"{e = }")
+print(f"{ct = }")
 
+while True:
+    try:
+        ct_input = int(input("> "))
+        pt = pow(ct_input, d, n)
+        if pt == flag:
+            print("Access granted")
+            exit()
+        else:
+            if pt % 2 == 0:
+                print("Even")
+            else:
+                print("Odd")
+    except ValueError:
+        print("Invalid input. Please provide a valid ciphertext.")
+```
+Sau đây là, đoạn code kết nối vào localhost port 1337 để lấy những thông tin từ n, e, cipertext và thông tin của plaintext sau khi hệ thống giãi mã và đưa ra thông tin về parity của plaintext
+```python
+from Crypto.Util.number import *
+from pwn import *
+
+def get_process():
+    return remote("localhost", 1337)  # Kết nối với máy chủ đang chạy Oracle
+
+def oracle(x):
+    io.sendlineafter(b'> ', str(pow(x, e, n) * ct % n).encode())
+    return io.recvline()
+
+# Kết nối tới dịch vụ
+io = get_process()
+
+e = 0x10001
+io.recvuntil(b'n = ')
+n = int(io.recvuntil(b"\n").decode())  # Đọc modulus n
+io.recvuntil(b'ct = ')
+ct = int(io.recvuntil(b"\n").decode())  # Đọc ciphertext
+```
+oracle(x): Hàm này sẽ gửi một ciphertext đã thay đổi, và nhận lại kết quả "Even" hoặc "Odd".
+
+Chiến thuật Tìm kiếm Nhị phân: Bạn thực hiện tìm kiếm nhị phân, bắt đầu với phạm vi từ 0 đến n. Mỗi lần, bạn sẽ thử một giá trị trung gian và kiểm tra xem giá trị đã giải mã là chẵn hay lẻ. Sau đó, bạn thu hẹp phạm vi tìm kiếm.
+
+Điều kiện dừng: Khi khoảng cách giữa lb và ub nhỏ hơn 65537, bạn sẽ dừng lại vì đã thu hẹp phạm vi đủ nhỏ để xác định được flag.
+```python
+# Khởi tạo phạm vi tìm kiếm cho p
+lb = 0
+ub = n
+
+# Chiến thuật tìm kiếm nhị phân để xác định giá trị của flag
+while True:
+    # Tiến hành nhân gấp đôi
+    k = (lb + ub) // 2  # Tạo giá trị để thử
+    if oracle(k) == b"Even\n":
+        ub = k  # Nếu kết quả là chẵn, giới hạn phạm vi trên
+    else:
+        lb = k  # Nếu kết quả là lẻ, giới hạn phạm vi dưới
+
+    # Kiểm tra khi khoảng cách giữa lb và ub nhỏ hơn 65537 (ngưỡng dừng)
+    if ub - lb < 65537:
+        print(f"Found value: {ub}, {lb}")
+        break
+```
+Ta sẽ có Flag của chúng ta là: b'KCSC{L5B_0r4cl3_svgm4c0ck!}'
+
+## 4. KẾT LUẬN 
 
 **VỪA RỒI LÀ TÓM TẮT TOÀN BỘ LÝ THUYẾT VỀ RSA HỌC QUA 20 BÀI ĐẦU TIÊN CỦA RSA CHALLENGE THEO CÁCH HIỂU CỦA BẢN THÂN**.
 
+Với vài phương thức tấn công và các challenge mẫu, đó là những gì dược học trong khoảng thời gian vừa qua... Một số phương pháp đúc kết được:
+
+Khai thác lỗ hổng dựa vào việc khai thác vào chính hệ thống RSA nói chung, và các khoá bảo mật nói riêng. Đa phần dựa vào các phép toán đồng dư, phép liên phân số, phép tính Binary Search,... Cùng với các định lý liên quan như Định lý Euclid mở rộng hay định lý dư Trung Quốc. Ngoài ra, còn dựng lại các phép tấn công dựa vào CCA2, nắm bắt lỗ hổng trong quá trình tính toán, tấn công vào MSB và LSB lên các hệ thống padding cũ như PKCS #1.
 
 
 
