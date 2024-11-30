@@ -1017,6 +1017,18 @@ $\cdot$ Thông tin chẵn lẻ.
 
 $\cdot$ Thiếu Kiểm Tra Tính Hợp Lệ: Nếu hệ thống không kiểm tra đúng tính hợp lệ của thông điệp sau khi giải mã, kẻ tấn công có thể thử nghiệm với nhiều ciphertexts và nhận được phản hồi từ hệ thống.
 
+Điểm khác biệt MSB với LSB:
+
+Bleichenbacher Attack tập trung vào MSB:
+
+Phản hồi từ Oracle giúp xác định xem plaintext giải mã có khớp định dạng đầu tiên hay không.
+
+LSB Oracle Attack tập trung vào các bit cuối cùng:
+
+Khai thác Oracle để thu hẹp dần các bit từ phía bên phải của plaintext.
+
+Ta có challenge như sau:
+
 
 
 **VỪA RỒI LÀ TÓM TẮT TOÀN BỘ LÝ THUYẾT VỀ RSA HỌC QUA 20 BÀI ĐẦU TIÊN CỦA RSA CHALLENGE THEO CÁCH HIỂU CỦA BẢN THÂN**.
