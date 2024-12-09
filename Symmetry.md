@@ -1,1 +1,2 @@
-
+# MÃ HÓA ĐỐI XỨNG (SYMMETRIC ENCRYPTION)
+Như ta đã tìm hiểu trong RSA Challenge, mỗi loại mã hóa sẽ đều tìm cách để biến một bản rõ (**Plaintext**) thành một bản mã khó đọc hơn (**Ciphertext**), đối với RSA, đây là một loại mã bất đối xứng, tức là đối với quá trình mã hóa và giải mã sẽ sử dụng các loại khóa công khai (**Public Key**) và khóa riêng tư (**Private Key**) là hai loại khóa khác nhau, nhưng có mỗi tương quan với nhau, sử dụng các kiến thức về lý thuyết số để giải quyết vấn đề mã hóa. Tuy nhiên đối với mã đối xứng, đó là một câu chuyện hoàn toàn khác, khi ta chỉ sử dụng cùng một khóa để mã hóa và giải mã.
