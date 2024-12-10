@@ -124,7 +124,9 @@ R_n = L_{n - 1} \oplus f(R_{n - 1}, K_n)
 \end{cases}
 $$
 
-*Bước 4: Hoán vị cuối cùng (Final Permutation)* Sau 16 vòng, phần trái và phải của dữ liệu sẽ được ghép lại và trải qua một bước hoán vị cuối cùng (inverse initial permutation, $IP^{-1}$) để tạo ra ciphertext.
+*Bước 4: Hoán vị cuối cùng (Final Permutation)* 
+
+Sau 16 vòng, phần trái và phải của dữ liệu sẽ được ghép lại và trải qua một bước hoán vị cuối cùng (inverse initial permutation, $IP^{-1}$) để tạo ra ciphertext.
 
 Sau 16 vòng mã hóa, kết quả là ciphertext 64-bit.
 
