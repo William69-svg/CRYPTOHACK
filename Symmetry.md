@@ -95,13 +95,13 @@ Khóa con được biến đổi qua từng vòng nhằm tăng cường tính b�
 
 *Bước 3: 16 vòng mã hóa (Feistel Network)*
 
-Tính toán dựa trên nửa phải $R_{n - 1} và khóa con $K_n$ trong vòng thử n:
+Tính toán dựa trên nửa phải $R_{n - 1}$ và khóa con $K_n$ trong vòng thử n:
 
 Tiếp tục với dữ liệu đầu vào: 0123456789ABCDEF
 
 1. Mở rộng (Expansion): Phần phải $R_{n - 1}$ được mở rộng từ 32 bit thành 48 bit bằng cách sử dụng bảng mở rộng E (Expansion Permutation). sao chép một số bit. Các bit mở rộng sẽ được XOR với khóa con $K_{n - 1}$ của vòng thử $n$.
 
-Ví dụ như đã đề cập ở khối dữ liệu đầu vào đã cho bên trên và nó sau khi được mở rộng (48-bit): $R_{n - 1} = 111010011101100011000011110011011111101011100010
+Ví dụ như đã đề cập ở khối dữ liệu đầu vào đã cho bên trên và nó sau khi được mở rộng (48-bit): $R_{n - 1}$ = 111010011101100011000011110011011111101011100010
 
 Giả sử XOR với khóa $K_{n - 1}$ = 010110001101101001100010111010011101010110101001
 
